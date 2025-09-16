@@ -767,190 +767,347 @@
         rcStart.onclick = rcStartRun; rcPause.onclick = rcPauseRun; rcReset.onclick = rcResetRun; rcTopicSel.onchange = rcUpdateBest;
         rcFillTopics();
 
-        // ---------- TANGO (6×6, logical only, no guessing)
-        const TG_SIZE = 6; const S = 'S', M = 'M';
-        const tgBoard = document.getElementById('tgBoard');
-        const tgMsg = document.getElementById('tgMsg');
-        let tgCells = [], tgHEq = [], tgVEq = [], tgSolution = [];
 
-        function tgSolutionFixed() {
-            // A valid 6×6 (3S/3M per row/col; no 3 in a row/col)
-            return [
-                [S, S, M, M, S, M],
-                [M, M, S, S, M, S],
-                [S, M, M, S, S, M],
-                [M, S, S, M, M, S],
-                [S, M, S, M, M, S],
-                [M, S, M, S, S, M]
-            ];
+        /* ------------------- TANGO (Takuzu 6×6) ------------------- */
+        /* Symbols */
+        const TG = 6, S = 'S', M = 'M';
+        const tgBoard = document.getElementById('tgBoard'), tgMsg = document.getElementById('tgMsg');
+        let tgCells = [], tgHEq = [], tgVEq = [], tgHNeq = [], tgVNeq = [], tgSolution = [], tgGivens = [];
+
+        /* -------- utils -------- */
+        const rng = () => Math.random();
+        function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = (rng() * (i + 1)) | 0;[a[i], a[j]] = [a[j], a[i]] } return a }
+        function empty() { return Array.from({ length: TG }, () => Array(TG).fill(null)) }
+        function clone(g) { return g.map(r => r.slice()) }
+        function isFull(g) { return g.every(r => r.every(v => v != null)) }
+        function rowCount(g, r, v) { return g[r].filter(x => x === v).length }
+        function colCount(g, c, v) { let n = 0; for (let r = 0; r < TG; r++) if (g[r][c] === v) n++; return n }
+        function eq(a, b) { return JSON.stringify(a) === JSON.stringify(b) }
+
+        /* hard/soft constraints */
+        function noTriples(g) {
+            // returns true if any illegal triple exists
+            for (let r = 0; r < TG; r++) for (let c = 0; c < TG - 2; c++) {
+                const a = g[r][c], b = g[r][c + 1], d = g[r][c + 2];
+                if (a && a === b && b === d) return true;
+            }
+            for (let c = 0; c < TG; c++) for (let r = 0; r < TG - 2; r++) {
+                const a = g[r][c], b = g[r + 1][c], d = g[r + 2][c];
+                if (a && a === b && b === d) return true;
+            }
+            return false;
         }
-        function tgEmpty() { return Array.from({ length: TG_SIZE }, () => Array(TG_SIZE).fill(null)) }
-        function tgClone(a) { return a.map(r => r.slice()) }
-        function tgCountRow(r, val, g) { return g[r].filter(x => x === val).length }
-        function tgCountCol(c, val, g) { let n = 0; for (let r = 0; r < TG_SIZE; r++) if (g[r][c] === val) n++; return n }
-        function tgApplyEq(g) {
-            let changed = false;
-            for (let r = 0; r < TG_SIZE; r++) {
-                for (let c = 0; c < TG_SIZE; c++) {
-                    if (g[r][c] != null) {
-                        if (tgHEq[r] && tgHEq[r][c] === '=' && g[r][c + 1] == null) { g[r][c + 1] = g[r][c]; changed = true }
-                        if (tgVEq[r] && tgVEq[r][c] === '=' && g[r + 1] && g[r + 1][c] == null) { g[r + 1][c] = g[r][c]; changed = true }
+        function countsOK(g) {
+            for (let r = 0; r < TG; r++) {
+                const s = rowCount(g, r, S), m = rowCount(g, r, M);
+                if (s > 3 || m > 3) return false;
+            }
+            for (let c = 0; c < TG; c++) {
+                let s = 0, m = 0; for (let r = 0; r < TG; r++) { if (g[r][c] === S) s++; else if (g[r][c] === M) m++; }
+                if (s > 3 || m > 3) return false;
+            }
+            return true;
+        }
+        function countsExact(g) {
+            for (let r = 0; r < TG; r++) if (rowCount(g, r, S) !== 3 || rowCount(g, r, M) !== 3) return false;
+            for (let c = 0; c < TG; c++) {
+                let s = 0, m = 0; for (let r = 0; r < TG; r++) { if (g[r][c] === S) s++; else if (g[r][c] === M) m++; }
+                if (s !== 3 || m !== 3) return false;
+            }
+            return true;
+        }
+        function rowsUnique(g) {
+            for (let i = 0; i < TG; i++) for (let j = i + 1; j < TG; j++) {
+                let comp = true;
+                for (let k = 0; k < TG; k++) { const a = g[i][k], b = g[j][k]; if (a == null || b == null || a !== b) { comp = false; break } }
+                if (comp) return false;
+            } return true;
+        }
+        function colsUnique(g) {
+            for (let i = 0; i < TG; i++) for (let j = i + 1; j < TG; j++) {
+                let comp = true;
+                for (let r = 0; r < TG; r++) { const a = g[r][i], b = g[r][j]; if (a == null || b == null || a !== b) { comp = false; break } }
+                if (comp) return false;
+            } return true;
+        }
+        function legalLocal(g, r, c) {
+            if (!countsOK(g)) return false;
+            // local triple checks around (r,c)
+            for (let k = c - 2; k <= c; k++) {
+                if (k < 0 || k + 2 >= TG) continue;
+                const a = g[r][k], b = g[r][k + 1], d = g[r][k + 2];
+                if (a && b && d && a === b && b === d) return false;
+            }
+            for (let k = r - 2; k <= r; k++) {
+                if (k < 0 || k + 2 >= TG) continue;
+                const a = g[k][c], b = g[k + 1][c], d = g[k + 2][c];
+                if (a && b && d && a === b && b === d) return false;
+            }
+            // if row full -> exact + unique vs other full rows
+            if (g[r].every(x => x != null)) {
+                if (rowCount(g, r, S) !== 3 || rowCount(g, r, M) !== 3) return false;
+                for (let rr = 0; rr < TG; rr++) if (rr !== r && g[rr].every(x => x != null)) {
+                    if (g[rr].every((x, k) => x === g[r][k])) return false;
+                }
+            }
+            // if column full -> exact + unique vs other full cols
+            let cFull = true; for (let rr = 0; rr < TG; rr++) if (g[rr][c] == null) { cFull = false; break }
+            if (cFull) {
+                let s = 0, m = 0; for (let rr = 0; rr < TG; rr++) { if (g[rr][c] === S) s++; else if (g[rr][c] === M) m++; }
+                if (s !== 3 || m !== 3) return false;
+                for (let cc = 0; cc < TG; cc++) if (cc !== c) {
+                    let otherFull = true, same = true;
+                    for (let rr = 0; rr < TG; rr++) { if (g[rr][cc] == null) { otherFull = false; break } }
+                    if (otherFull) { for (let rr = 0; rr < TG; rr++) { if (g[rr][cc] !== g[rr][c]) { same = false; break } } if (same) return false; }
+                }
+            }
+            return true;
+        }
+
+        /* -------- generator: random solved board (backtracking + randomized order) -------- */
+        function genSolved() {
+            const g = empty();
+            const coords = []; for (let r = 0; r < TG; r++) for (let c = 0; c < TG; c++) coords.push([r, c]);
+            shuffle(coords);
+            function back(i) {
+                if (i === coords.length) { return !noTriples(g) && countsExact(g) && rowsUnique(g) && colsUnique(g) }
+                const [r, c] = coords[i];
+                const vals = rng() < 0.5 ? [S, M] : [M, S];
+                for (const v of vals) {
+                    g[r][c] = v;
+                    if (legalLocal(g, r, c) && back(i + 1)) return true;
+                }
+                g[r][c] = null; return false;
+            }
+            if (!back(0)) return genSolved(); // extremely selten
+            return g;
+        }
+
+        /* -------- logic solver (deterministic Takuzu steps for hints & carving) --------
+           Regeln: (1) keine 3 in Folge -> XX_ -> XXO; X_X -> O; (2) Zeilen/Spalten auffüllen wenn 3 erreicht;
+           (3) Gegen identische vollendete Zeilen/Spalten: offene Felder müssen Gegensätze sein. */
+        function solveByLogic(g) {
+            const grid = clone(g);
+            const HEq = empty(), VEq = empty(), HNeq = empty(), VNeq = empty(); // overlays (= / ×)
+            let changed = true, guard = 0;
+            function setCell(r, c, val, mark) {
+                if (grid[r][c] == null) {
+                    grid[r][c] = val;
+                    if (mark) {
+                        if (mark.hneq != null) HNeq[r][mark.hneq] = '×';
+                        if (mark.vneq != null) VNeq[mark.vneq][c] = '×';
+                        if (mark.heq != null) HEq[r][mark.heq] = '=';
+                        if (mark.veq != null) VEq[mark.veq][c] = '=';
                     }
                 }
             }
-            return changed;
-        }
-        function tgLogicOnce(g) {
-            let changed = false;
-            // A) No three same in a row (rows)
-            for (let r = 0; r < TG_SIZE; r++) {
-                for (let c = 0; c < TG_SIZE - 2; c++) {
-                    const a = g[r][c], b = g[r][c + 1], d = g[r][c + 2];
-                    if (a === b && a != null && d == null) { g[r][c + 2] = (a === S ? M : S); changed = true }
-                    if (b === d && b != null && a == null) { g[r][c] = (b === S ? M : S); changed = true }
-                    if (a === d && a != null && b == null) { g[r][c + 1] = (a === S ? M : S); changed = true }
+            while (changed && guard++ < 600) {
+                changed = false;
+
+                // A) Triples verhindern – Reihen
+                for (let r = 0; r < TG; r++) for (let c = 0; c < TG - 2; c++) {
+                    const a = grid[r][c], b = grid[r][c + 1], d = grid[r][c + 2];
+                    if (a != null && b != null && d == null && a === b) { setCell(r, c + 2, a === S ? M : S, { hneq: c + 1 }); changed = true }
+                    if (a == null && b != null && d != null && b === d) { setCell(r, c, b === S ? M : S, { hneq: c }); changed = true }
+                    if (a != null && b == null && d != null && a === d) { setCell(r, c + 1, a === S ? M : S, { hneq: c + 1 }); changed = true }
+                }
+                // A) Triples verhindern – Spalten
+                for (let c = 0; c < TG; c++) for (let r = 0; r < TG - 2; r++) {
+                    const a = grid[r][c], b = grid[r + 1][c], d = grid[r + 2][c];
+                    if (a != null && b != null && d == null && a === b) { setCell(r + 2, c, a === S ? M : S, { vneq: r + 1 }); changed = true }
+                    if (a == null && b != null && d != null && b === d) { setCell(r, c, b === S ? M : S, { vneq: r }); changed = true }
+                    if (a != null && b == null && d != null && a === d) { setCell(r + 1, c, a === S ? M : S, { vneq: r + 1 }); changed = true }
+                }
+
+                // B) 3 pro Zeile/Spalte erzwingen
+                for (let r = 0; r < TG; r++) {
+                    const s = rowCount(grid, r, S), m = rowCount(grid, r, M);
+                    if (s === 3) { for (let c = 0; c < TG; c++) if (grid[r][c] == null) { setCell(r, c, M); changed = true } }
+                    if (m === 3) { for (let c = 0; c < TG; c++) if (grid[r][c] == null) { setCell(r, c, S); changed = true } }
+                }
+                for (let c = 0; c < TG; c++) {
+                    let s = 0, m = 0; for (let r = 0; r < TG; r++) { if (grid[r][c] === S) s++; else if (grid[r][c] === M) m++; }
+                    if (s === 3) { for (let r = 0; r < TG; r++) if (grid[r][c] == null) { setCell(r, c, M); changed = true } }
+                    if (m === 3) { for (let r = 0; r < TG; r++) if (grid[r][c] == null) { setCell(r, c, S); changed = true } }
+                }
+
+                // C) Gegen identische fertige Zeilen/Spalten absichern
+                // Zeilen
+                for (let r = 0; r < TG; r++) {
+                    if (grid[r].every(x => x != null)) continue;
+                    for (let rr = 0; rr < TG; rr++) {
+                        if (rr === r) continue;
+                        if (!grid[rr].every(x => x != null)) continue; // nur gegen fertige vergleichen
+                        let compatible = true;
+                        for (let c = 0; c < TG; c++) { if (grid[r][c] != null && grid[r][c] !== grid[rr][c]) { compatible = false; break } }
+                        if (compatible) {
+                            for (let c = 0; c < TG; c++) if (grid[r][c] == null) { setCell(r, c, grid[rr][c] === S ? M : S, {}); changed = true }
+                        }
+                    }
+                }
+                // Spalten
+                for (let c = 0; c < TG; c++) {
+                    let colFull = true; for (let r = 0; r < TG; r++) if (grid[r][c] == null) { colFull = false; break }
+                    if (colFull) continue;
+                    for (let cc = 0; cc < TG; cc++) {
+                        if (cc === c) continue;
+                        let otherFull = true; for (let r = 0; r < TG; r++) if (grid[r][cc] == null) { otherFull = false; break }
+                        if (!otherFull) continue;
+                        let compatible = true;
+                        for (let r = 0; r < TG; r++) { const a = grid[r][c], b = grid[r][cc]; if (a != null && b != null && a !== b) { compatible = false; break } }
+                        if (compatible) {
+                            for (let r = 0; r < TG; r++) if (grid[r][c] == null) { setCell(r, c, grid[r][cc] === S ? M : S, {}); changed = true }
+                        }
+                    }
                 }
             }
-            // A) No three same in a row (cols)
-            for (let c = 0; c < TG_SIZE; c++) {
-                for (let r = 0; r < TG_SIZE - 2; r++) {
-                    const a = g[r][c], b = g[r + 1][c], d = g[r + 2][c];
-                    if (a === b && a != null && d == null) { g[r + 2][c] = (a === S ? M : S); changed = true }
-                    if (b === d && b != null && a == null) { g[r][c] = (b === S ? M : S); changed = true }
-                    if (a === d && a != null && b == null) { g[r + 1][c] = (a === S ? M : S); changed = true }
+            const solved = isFull(grid) && !noTriples(grid) && countsExact(grid) && rowsUnique(grid) && colsUnique(grid);
+            return { grid, HEq, VEq, HNeq, VNeq, solved };
+        }
+
+        /* -------- full solver (backtracking) to check uniqueness -------- */
+        function firstEmpty(g) {
+            for (let r = 0; r < TG; r++) for (let c = 0; c < TG; c++) if (g[r][c] == null) return [r, c];
+            return null;
+        }
+        function tryValuesRandom() { return rng() < 0.5 ? [S, M] : [M, S]; }
+        function solveBacktrack(grid, stopAt = 1) {
+            let count = 0, last = null;
+            const g = clone(grid);
+            function dfs() {
+                if (noTriples(g) || !countsOK(g)) return;
+                // simple forward: if any row/col full, check exact+unique against existing full ones
+                // (already partly covered in legalLocal when placing, but we pick empties directly here)
+                const e = firstEmpty(g);
+                if (!e) {
+                    if (countsExact(g) && rowsUnique(g) && colsUnique(g)) { count++; last = clone(g); }
+                    return;
+                }
+                const [r, c] = e, vals = tryValuesRandom();
+                for (const v of vals) {
+                    g[r][c] = v;
+                    if (legalLocal(g, r, c)) {
+                        dfs();
+                        if (count >= stopAt) { g[r][c] = null; return; }
+                    }
+                    g[r][c] = null;
                 }
             }
-            // B) 3 per row/col
-            for (let r = 0; r < TG_SIZE; r++) {
-                if (tgCountRow(r, S, g) === 3) { for (let c = 0; c < TG_SIZE; c++) if (g[r][c] == null) { g[r][c] = M; changed = true } }
-                if (tgCountRow(r, M, g) === 3) { for (let c = 0; c < TG_SIZE; c++) if (g[r][c] == null) { g[r][c] = S; changed = true } }
-            }
-            for (let c = 0; c < TG_SIZE; c++) {
-                if (tgCountCol(c, S, g) === 3) { for (let r = 0; r < TG_SIZE; r++) if (g[r][c] == null) { g[r][c] = M; changed = true } }
-                if (tgCountCol(c, M, g) === 3) { for (let r = 0; r < TG_SIZE; r++) if (g[r][c] == null) { g[r][c] = S; changed = true } }
-            }
-            // C) '=' helpers
-            if (tgApplyEq(g)) changed = true;
-            return changed;
+            dfs();
+            return { count, solution: last };
         }
-        function tgSolveByLogic(g) {
-            let guard = 0, changed;
-            do { changed = tgLogicOnce(g); guard++ } while (changed && guard < 200);
-            return g.every(r => r.every(x => x != null));
-        }
-        function tgBuildPuzzle() {
-            tgSolution = tgSolutionFixed();
-            tgHEq = tgEmpty(); tgVEq = tgEmpty();
-            // sprinkle equality hints consistent with solution
-            tgHEq[2][1] = '='; // row3 c2=c3
-            tgHEq[4][3] = '='; // row5 c4=c5
-            tgVEq[1][4] = '='; // r2 c5 == r3 c5
 
-            // Start with a few givens, then reveal more until solvable by logic (no guessing)
-            let grid = tgEmpty();
-            const givens = [[0, 0], [0, 2], [1, 3], [2, 0], [3, 5], [4, 4], [5, 1]];
-            givens.forEach(([r, c]) => grid[r][c] = tgSolution[r][c]);
+        /* -------- Carving: entferne nur Felder, die logisch herleitbar sind UND die Eindeutigkeit erhalten -------- */
+        function carveFromSolution(sol) {
+            let puzzle = clone(sol);
+            const cells = []; for (let r = 0; r < TG; r++) for (let c = 0; c < TG; c++) cells.push([r, c]);
+            shuffle(cells);
 
-            function pickNext() { for (let r = 0; r < TG_SIZE; r++) for (let c = 0; c < TG_SIZE; c++) if (grid[r][c] == null) return [r, c]; return null }
-            while (!tgSolveByLogic(tgClone(grid))) {
-                const p = pickNext(); if (!p) break;
-                const [r, c] = p; grid[r][c] = tgSolution[r][c];
+            let bestHEq = empty(), bestVEq = empty(), bestHNeq = empty(), bestVNeq = empty();
+
+            for (const [r, c] of cells) {
+                const keep = puzzle[r][c]; puzzle[r][c] = null;
+
+                // 1) mit Logik auflösen
+                const step = solveByLogic(puzzle);
+                // 2) wenn Logik vollständig zur selben Lösung führt UND eindeutig bleibt, behalten
+                if (step.solved && eq(step.grid, sol)) {
+                    const uniq = solveBacktrack(puzzle, 2);
+                    if (uniq.count === 1) {
+                        bestHEq = step.HEq; bestVEq = step.VEq; bestHNeq = step.HNeq; bestVNeq = step.VNeq;
+                        continue; // Entfernung akzeptiert
+                    }
+                }
+                // sonst rückgängig
+                puzzle[r][c] = keep;
             }
-            return grid;
+            return { puzzle, HEq: bestHEq, VEq: bestVEq, HNeq: bestHNeq, VNeq: bestVNeq };
         }
-        function tgRender(grid) {
-            tgBoard.innerHTML = ''; tgCells = [];
-            for (let r = 0; r < TG_SIZE; r++) {
-                for (let c = 0; c < TG_SIZE; c++) {
-                    const d = document.createElement('div');
-                    d.className = 'cell'; d.dataset.r = r; d.dataset.c = c;
-                    const v = grid[r][c];
-                    d.textContent = v ? v : '';
+
+        /* -------- UI -------- */
+        function renderBoard(grid, HEq, VEq, HNeq, VNeq) {
+            tgBoard.innerHTML = ''; tgCells = []; tgHEq = HEq; tgVEq = VEq; tgHNeq = HNeq; tgVNeq = VNeq;
+            for (let r = 0; r < TG; r++) {
+                for (let c = 0; c < TG; c++) {
+                    const d = document.createElement('div'); d.className = 'cell'; d.dataset.r = r; d.dataset.c = c;
+                    const v = grid[r][c]; d.textContent = v ? v : '';
                     if (v != null) d.dataset.lock = '1';
-                    if (tgHEq[r] && tgHEq[r][c] === '=') d.classList.add('eq-right');
-                    if (tgVEq[r] && tgVEq[r][c] === '=') d.classList.add('eq-down');
-                    d.onclick = () => tgClick(d);
+                    if (HEq[r][c] === '=') d.classList.add('eq-right');
+                    if (VEq[r][c] === '=') d.classList.add('eq-down');
+                    if (HNeq[r][c] === '×') d.classList.add('neq-right');
+                    if (VNeq[r][c] === '×') d.classList.add('neq-down');
+                    d.onclick = () => { if (d.dataset.lock === '1') return; const cur = d.textContent; d.textContent = cur === '' ? S : cur === S ? M : '' };
                     tgBoard.appendChild(d);
-                    if (!tgCells[r]) tgCells[r] = [];
-                    tgCells[r][c] = d;
+                    if (!tgCells[r]) tgCells[r] = []; tgCells[r][c] = d;
                 }
             }
         }
-        function tgClick(d) {
-            if (d.dataset.lock === '1') return;
-            const cur = d.textContent;
-            const next = cur === '' ? S : cur === S ? M : '';
-            d.textContent = next;
-        }
-        function tgReadGrid() {
-            const g = tgEmpty();
-            for (let r = 0; r < TG_SIZE; r++) for (let c = 0; c < TG_SIZE; c++) {
-                const t = tgCells[r][c].textContent;
-                g[r][c] = t === '' ? null : (t === S ? S : M);
+        function readGrid() {
+            const g = empty();
+            for (let r = 0; r < TG; r++) for (let c = 0; c < TG; c++) {
+                const t = tgCells[r][c].textContent; g[r][c] = t === '' ? null : (t === S ? S : M);
             }
             return g;
         }
-        function tgSay(msg, good) {
-            tgMsg.classList.remove('hidden');
-            tgMsg.innerHTML = `<span class="${good ? 'ok' : 'bad'}">${msg}</span>`;
-        }
+        function say(msg, good) { tgMsg.classList.remove('hidden'); tgMsg.innerHTML = `<span class="${good ? 'ok' : 'bad'}">${msg}</span>` }
+
+        /* Check */
         function tgCheck() {
-            const g = tgReadGrid();
-            // counts
-            for (let r = 0; r < TG_SIZE; r++) {
-                if (tgCountRow(r, S, g) > 3 || tgCountRow(r, M, g) > 3) return tgSay('Row count exceeded', false)
+            const g = readGrid();
+            if (!countsOK(g)) return say('Max 3 von S/M pro Zeile/Spalte nicht überschreiten.', false);
+            if (noTriples(g)) return say('Verbotene Dreierfolge gefunden.', false);
+            // Soft-Warnungen gegen die Overlay-Hinweise
+            for (let r = 0; r < TG; r++) for (let c = 0; c < TG; c++) {
+                if (tgHEq[r][c] === '=' && g[r][c] != null && c + 1 < TG && g[r][c + 1] != null && g[r][c] !== g[r][c + 1]) return say('Hinweis "=" verletzt.', false);
+                if (tgVEq[r][c] === '=' && g[r][c] != null && r + 1 < TG && g[r + 1][c] != null && g[r][c] !== g[r + 1][c]) return say('Hinweis "=" verletzt.', false);
+                if (tgHNeq[r][c] === '×' && g[r][c] != null && c + 1 < TG && g[r][c + 1] != null && g[r][c] === g[r][c + 1]) return say('Hinweis "×" verletzt.', false);
+                if (tgVNeq[r][c] === '×' && g[r][c] != null && r + 1 < TG && g[r + 1][c] != null && g[r][c] === g[r + 1][c]) return say('Hinweis "×" verletzt.', false);
             }
-            for (let c = 0; c < TG_SIZE; c++) {
-                if (tgCountCol(c, S, g) > 3 || tgCountCol(c, M, g) > 3) return tgSay('Col count exceeded', false)
+            if (isFull(g)) {
+                if (!countsExact(g)) return say('Gefüllt, aber es müssen genau 3 S und 3 M pro Zeile/Spalte sein.', false);
+                if (!rowsUnique(g) || !colsUnique(g)) return say('Gefüllt, aber doppelte Zeilen/Spalten.', false);
+                return say(eq(g, tgSolution) ? 'Gelöst! ✅' : 'Regelkonformes Alternativ-Grid (nicht die Ziel-Lösung).', eq(g, tgSolution));
             }
-            // no 3 in a row/col
-            for (let r = 0; r < TG_SIZE; r++) for (let c = 0; c < TG_SIZE - 2; c++) {
-                const a = g[r][c], b = g[r][c + 1], d = g[r][c + 2];
-                if (a && b && d && a === b && b === d) return tgSay('Three in a row found', false)
-            }
-            for (let c = 0; c < TG_SIZE; c++) for (let r = 0; r < TG_SIZE - 2; r++) {
-                const a = g[r][c], b = g[r + 1][c], d = g[r + 2][c];
-                if (a && b && d && a === b && b === d) return tgSay('Three in a column found', false)
-            }
-            // equality helpers
-            for (let r = 0; r < TG_SIZE; r++) for (let c = 0; c < TG_SIZE; c++) {
-                if (tgHEq[r] && tgHEq[r][c] === '=' && g[r][c] != null && g[r][c + 1] != null && g[r][c] !== g[r][c + 1]) return tgSay('Broken \"=\" hint', false);
-                if (tgVEq[r] && tgVEq[r][c] === '=' && g[r][c] != null && g[r + 1] && g[r + 1][c] != null && g[r][c] !== g[r + 1][c]) return tgSay('Broken \"=\" hint', false);
-            }
-            // solved?
-            const full = g.every(r => r.every(x => x != null));
-            if (full) {
-                const ok = JSON.stringify(g) === JSON.stringify(tgSolution);
-                return tgSay(ok ? 'Solved! ✅' : 'Filled but not the intended solution.', ok)
-            } else {
-                return tgSay('Looks consistent so far. Keep going!', true)
-            }
+            return say('Bisher konsistent. Weiter!', true);
         }
+
+        /* Hint: eine logische Ableitung anwenden */
         function tgHint() {
-            const g = tgReadGrid();
-            const before = JSON.stringify(g);
-            if (!tgLogicOnce(g)) { tgLogicOnce(g) } // try twice if first pass does nothing
-            const after = JSON.stringify(g);
-            if (after === before) { tgSay('No single-step hint found.', false); return }
-            // apply first difference
-            for (let r = 0; r < TG_SIZE; r++) for (let c = 0; c < TG_SIZE; c++) {
-                const beforeCell = tgCells[r][c].textContent || null;
-                const afterCell = g[r][c];
-                if ((beforeCell || null) !== afterCell && afterCell != null) {
-                    tgCells[r][c].textContent = afterCell;
-                    tgCells[r][c].classList.add('flash');
-                    setTimeout(() => tgCells[r][c].classList.remove('flash'), 180);
-                    tgSay('Applied a logical deduction.', true);
+            const cur = readGrid();
+            const step = solveByLogic(cur);
+            if (eq(step.grid, cur)) { say('Kein 1-Schritt-Hinweis gefunden.', false); return }
+            // erste Differenz anwenden
+            for (let r = 0; r < TG; r++) for (let c = 0; c < TG; c++) {
+                if (cur[r][c] !== step.grid[r][c] && step.grid[r][c] != null) {
+                    tgCells[r][c].textContent = step.grid[r][c];
+                    tgCells[r][c].classList.add('flash'); setTimeout(() => tgCells[r][c].classList.remove('flash'), 180);
+                    if (step.HNeq[r][c - 1] === '×') tgCells[r][c - 1]?.classList.add('neq-right');
+                    if (step.VNeq[r - 1]?.[c] === '×') tgCells[r - 1]?.[c]?.classList.add('neq-down');
+                    if (step.HEq[r][c - 1] === '=') tgCells[r][c - 1]?.classList.add('eq-right');
+                    if (step.VEq[r - 1]?.[c] === '=') tgCells[r - 1]?.[c]?.classList.add('eq-down');
+                    say('Logischen Schritt angewandt.', true);
                     return;
                 }
             }
         }
-        function tgNew() { tgMsg.classList.add('hidden'); const start = tgBuildPuzzle(); tgRender(start) }
 
+        /* New: generiere Lösung -> carve mit Logik+Eindeutigkeit -> render */
+        function tgNew() {
+            tgMsg.classList.add('hidden');
+            tgSolution = genSolved();
+            const carved = carveFromSolution(tgSolution);
+            tgGivens = carved.puzzle;
+            renderBoard(tgGivens, carved.HEq, carved.VEq, carved.HNeq, carved.VNeq);
+        }
+
+        /* wire buttons */
         document.getElementById('tgNew').onclick = tgNew;
-        document.getElementById('tgHint').onclick = tgHint;
         document.getElementById('tgCheck').onclick = tgCheck;
+        document.getElementById('tgHint').onclick = tgHint;
+
+        /* boot */
         tgNew();
+        /* ------------------- /TANGO ------------------- */
 
 
     </script>
