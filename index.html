@@ -39,6 +39,14 @@
   .flash{animation:flash .25s ease-out}
   @keyframes flash{from{transform:scale(1.04);text-shadow:0 0 12px rgba(255,255,255,.08)}to{transform:scale(1);text-shadow:none}}
   @media (max-width:680px){.two,.three,.four{grid-template-columns:1fr}}
+
+/* Tango helpers */
+.board{display:grid;grid-template-columns:repeat(6,40px);gap:6px;justify-content:center}
+.cell{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:10px;background:#0f1219;cursor:pointer;position:relative}
+.cell[data-lock="1"]{background:#141a25}
+.eq-right::after{content:'=';position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted)}
+.eq-down::before{content:'=';position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--muted)}
+
 </style>
 </head>
 <body>
@@ -49,8 +57,10 @@
         <div class="tab" role="tab" aria-selected="true" data-panel="teasers">Teasers</div>
         <div class="tab" role="tab" aria-selected="false" data-panel="math">Speed Math</div>
         <div class="tab" role="tab" aria-selected="false" data-panel="stroop">Stroop</div>
-        <div class="tab" role="tab" aria-selected="false" data-panel="nback">1‑Back</div>
+        <div class="tab" role="tab" aria-selected="false" data-panel="nback">1-Back</div>
         <div class="tab" role="tab" aria-selected="false" data-panel="nmem">Number Memory</div>
+        <div class="tab" role="tab" aria-selected="false" data-panel="read">Reading</div>
+        <div class="tab" role="tab" aria-selected="false" data-panel="tango">Tango 6×6</div>
       </div>
     </header>
 
@@ -148,6 +158,49 @@
         <div id="nmFinish" class="finish hidden" style="margin-top:10px"></div>
       </div>
     </section>
+
+<!-- READING COMPREHENSION -->
+<section id="read" class="card hidden" role="tabpanel" aria-hidden="true">
+  <div class="row" style="justify-content:space-between">
+    <div>
+      <div class="pill">One-word display → tricky question • Best WPM <span id="rcBest">0</span></div>
+      <h2 style="margin:6px 0 0">Reading Comprehension</h2>
+    </div>
+    <div class="row">
+      <select id="rcTopic"></select>
+      <label class="pill">WPM <span id="rcWpm">240</span></label>
+      <input id="rcSpeed" type="range" min="120" max="700" step="10" value="240" style="width:160px"/>
+      <button id="rcStart">Start</button>
+      <button id="rcPause">Pause</button>
+      <button id="rcReset">Reset</button>
+    </div>
+  </div>
+  <div class="center" style="margin-top:10px">
+    <div id="rcWord" class="big" style="min-height:40px">Pick a topic and Start</div>
+    <div id="rcQA" class="finish hidden" style="margin-top:10px"></div>
+  </div>
+</section>
+
+<!-- TANGO 6x6 -->
+<section id="tango" class="card hidden" role="tabpanel" aria-hidden="true">
+  <div class="row" style="justify-content:space-between">
+    <div>
+      <div class="pill">6×6 • 3 S & 3 M per row/col • no 3 in a row • '=' hints</div>
+      <h2 style="margin:6px 0 0">Tango</h2>
+    </div>
+    <div class="row">
+      <button id="tgNew">New</button>
+      <button id="tgHint">Hint</button>
+      <button id="tgCheck">Check</button>
+      <span class="pill">Legend: S=Sun, M=Moon</span>
+    </div>
+  </div>
+  <div class="center" style="margin-top:10px">
+    <div id="tgBoard" class="board"></div>
+    <div id="tgMsg" class="finish hidden" style="margin-top:10px"></div>
+  </div>
+</section>
+
 
     <p class="muted" style="margin-top:16px">Tip: Use <span class="kbd">Tab</span> to hop inputs. All games are offline, single‑file.</p>
   </div>
@@ -378,6 +431,297 @@ function nmCheck(){ const ok = nmInput.value.trim()===nmCurrent; if(ok){ nmLevel
 document.getElementById('nmStart').onclick=nmStart;
 document.getElementById('nmCheck').onclick=nmCheck;
 nmInput.addEventListener('keydown',e=>{if(e.key==='Enter') nmCheck()});
+
+
+// ---------- READING COMPREHENSION
+if(!STATE.best.rc) STATE.best.rc = {};
+
+const RC_TOPICS=[
+  {topic:'Coffee trade',
+   text:"Brazil exported roasted coffee to Italy after a drought eased, while Italy reduced shipments back to Brazil, focusing instead on espresso machine sales to France.",
+   q:"Based on the passage, which direction was the coffee moving?",
+   choices:["Italy → Brazil","Brazil → Italy","France → Brazil"], answer:1},
+  {topic:'Space probes',
+   text:"Pioneer 10 launched before Voyager 2, but only Voyager carried the Golden Record. Both probes flew past giant planets; Voyager took the famous portrait of the Solar System.",
+   q:"Which probe launched first?",
+   choices:["Voyager 2","Pioneer 10","Both together"], answer:1},
+  {topic:'Rivers & cities',
+   text:"The Arlen River flows north into the Calder. City X lies upstream of City Y on the Arlen, yet south of the Calder delta.",
+   q:"Relative to City Y, where is City X on the Arlen?",
+   choices:["Downstream","Upstream","Same location"], answer:1},
+  {topic:'History note',
+   text:"In 1867, Country A ceded its northern territory to Country B. Decades later, A imported timber from B while exporting coal to C.",
+   q:"Who ceded territory to whom?",
+   choices:["B → A","A → B","C → A"], answer:1}
+];
+
+const rcTopicSel=document.getElementById('rcTopic');
+const rcWord=document.getElementById('rcWord');
+const rcQA=document.getElementById('rcQA');
+const rcBestEl=document.getElementById('rcBest');
+const rcSpeed=document.getElementById('rcSpeed');
+const rcWpm=document.getElementById('rcWpm');
+const rcStart=document.getElementById('rcStart');
+const rcPause=document.getElementById('rcPause');
+const rcReset=document.getElementById('rcReset');
+
+let rcTimer=null, rcIdx=0, rcWords=[], rcPaused=false;
+
+function rcFillTopics(){
+  rcTopicSel.innerHTML='';
+  RC_TOPICS.forEach((t,i)=>{
+    const o=document.createElement('option');
+    o.value=String(i); o.textContent=t.topic;
+    rcTopicSel.appendChild(o);
+  });
+  rcUpdateBest();
+}
+function rcUpdateBest(){
+  const t=RC_TOPICS[Number(rcTopicSel.value||0)];
+  const best=(STATE.best.rc[t.topic]||0);
+  rcBestEl.textContent=best;
+}
+function rcShowNext(){
+  if(rcIdx>=rcWords.length){
+    clearInterval(rcTimer); rcTimer=null;
+    rcAsk(); return;
+  }
+  rcWord.textContent=rcWords[rcIdx++];
+  rcWord.classList.add('flash'); setTimeout(()=>rcWord.classList.remove('flash'),150);
+}
+function rcStartRun(){
+  rcQA.classList.add('hidden'); rcQA.innerHTML='';
+  const t=RC_TOPICS[Number(rcTopicSel.value||0)];
+  rcWords=t.text.split(/\s+/);
+  rcIdx=0; rcShowNext(); rcPaused=false;
+  if(rcTimer) clearInterval(rcTimer);
+  const ms=Math.max(60, Math.round(60000/Number(rcSpeed.value))); // speedable
+  rcTimer=setInterval(rcShowNext, ms);
+}
+function rcPauseRun(){
+  if(!rcTimer){ return }
+  clearInterval(rcTimer); rcTimer=null; rcPaused=true;
+  rcWord.textContent += ' ▌';
+}
+function rcResetRun(){
+  if(rcTimer){ clearInterval(rcTimer); rcTimer=null }
+  rcWord.textContent='Pick a topic and Start';
+  rcQA.classList.add('hidden');
+}
+function rcAsk(){
+  const t=RC_TOPICS[Number(rcTopicSel.value||0)];
+  rcWord.textContent='?';
+  rcQA.classList.remove('hidden');
+  const wrap=document.createElement('div');
+  wrap.innerHTML=`<div><b>${t.q}</b></div>`;
+  t.choices.forEach((c,i)=>{
+    const b=document.createElement('button');
+    b.textContent=c; b.style.margin='6px';
+    b.onclick=()=>rcAnswer(i);
+    wrap.appendChild(b);
+  });
+  rcQA.innerHTML=''; rcQA.appendChild(wrap);
+}
+function rcAnswer(i){
+  const t=RC_TOPICS[Number(rcTopicSel.value||0)];
+  const correct=i===t.answer;
+  rcQA.innerHTML = `You are <b class="${correct?'ok':'bad'}">${correct?'correct':'wrong'}</b>.` + (correct? ' Nice.':'');
+  if(correct){
+    const wpm=Number(rcSpeed.value);
+    const best=STATE.best.rc[t.topic]||0;
+    if(wpm>best){ STATE.best.rc[t.topic]=wpm; saveState(STATE); rcBestEl.textContent=wpm }
+  }
+}
+rcSpeed.oninput=()=>{ rcWpm.textContent=rcSpeed.value; if(rcTimer){ clearInterval(rcTimer); const ms=Math.max(60, Math.round(60000/Number(rcSpeed.value))); rcTimer=setInterval(rcShowNext, ms) } };
+rcStart.onclick=rcStartRun; rcPause.onclick=rcPauseRun; rcReset.onclick=rcResetRun; rcTopicSel.onchange=rcUpdateBest;
+rcFillTopics();
+
+// ---------- TANGO (6×6, logical only, no guessing)
+const TG_SIZE=6; const S='S', M='M';
+const tgBoard=document.getElementById('tgBoard');
+const tgMsg=document.getElementById('tgMsg');
+let tgCells=[], tgHEq=[], tgVEq=[], tgSolution=[];
+
+function tgSolutionFixed(){
+  // A valid 6×6 (3S/3M per row/col; no 3 in a row/col)
+  return [
+    [S,S,M, M,S,M],
+    [M,M,S, S,M,S],
+    [S,M,M, S,S,M],
+    [M,S,S, M,M,S],
+    [S,M,S, M,M,S],
+    [M,S,M, S,S,M]
+  ];
+}
+function tgEmpty(){ return Array.from({length:TG_SIZE},()=>Array(TG_SIZE).fill(null)) }
+function tgClone(a){ return a.map(r=>r.slice()) }
+function tgCountRow(r,val,g){ return g[r].filter(x=>x===val).length }
+function tgCountCol(c,val,g){ let n=0; for(let r=0;r<TG_SIZE;r++) if(g[r][c]===val) n++; return n }
+function tgApplyEq(g){
+  let changed=false;
+  for(let r=0;r<TG_SIZE;r++){
+    for(let c=0;c<TG_SIZE;c++){
+      if(g[r][c]!=null){
+        if(tgHEq[r]&&tgHEq[r][c]==='=' && g[r][c+1]==null){ g[r][c+1]=g[r][c]; changed=true }
+        if(tgVEq[r]&&tgVEq[r][c]==='=' && g[r+1]&&g[r+1][c]==null){ g[r+1][c]=g[r][c]; changed=true }
+      }
+    }
+  }
+  return changed;
+}
+function tgLogicOnce(g){
+  let changed=false;
+  // A) No three same in a row (rows)
+  for(let r=0;r<TG_SIZE;r++){
+    for(let c=0;c<TG_SIZE-2;c++){
+      const a=g[r][c], b=g[r][c+1], d=g[r][c+2];
+      if(a===b && a!=null && d==null){ g[r][c+2]=(a===S?M:S); changed=true }
+      if(b===d && b!=null && a==null){ g[r][c]=(b===S?M:S); changed=true }
+      if(a===d && a!=null && b==null){ g[r][c+1]=(a===S?M:S); changed=true }
+    }
+  }
+  // A) No three same in a row (cols)
+  for(let c=0;c<TG_SIZE;c++){
+    for(let r=0;r<TG_SIZE-2;r++){
+      const a=g[r][c], b=g[r+1][c], d=g[r+2][c];
+      if(a===b && a!=null && d==null){ g[r+2][c]=(a===S?M:S); changed=true }
+      if(b===d && b!=null && a==null){ g[r][c]=(b===S?M:S); changed=true }
+      if(a===d && a!=null && b==null){ g[r+1][c]=(a===S?M:S); changed=true }
+    }
+  }
+  // B) 3 per row/col
+  for(let r=0;r<TG_SIZE;r++){
+    if(tgCountRow(r,S,g)===3){ for(let c=0;c<TG_SIZE;c++) if(g[r][c]==null){ g[r][c]=M; changed=true } }
+    if(tgCountRow(r,M,g)===3){ for(let c=0;c<TG_SIZE;c++) if(g[r][c]==null){ g[r][c]=S; changed=true } }
+  }
+  for(let c=0;c<TG_SIZE;c++){
+    if(tgCountCol(c,S,g)===3){ for(let r=0;r<TG_SIZE;r++) if(g[r][c]==null){ g[r][c]=M; changed=true } }
+    if(tgCountCol(c,M,g)===3){ for(let r=0;r<TG_SIZE;r++) if(g[r][c]==null){ g[r][c]=S; changed=true } }
+  }
+  // C) '=' helpers
+  if(tgApplyEq(g)) changed=true;
+  return changed;
+}
+function tgSolveByLogic(g){
+  let guard=0, changed;
+  do{ changed=tgLogicOnce(g); guard++ }while(changed && guard<200);
+  return g.every(r=>r.every(x=>x!=null));
+}
+function tgBuildPuzzle(){
+  tgSolution=tgSolutionFixed();
+  tgHEq=tgEmpty(); tgVEq=tgEmpty();
+  // sprinkle equality hints consistent with solution
+  tgHEq[2][1]='='; // row3 c2=c3
+  tgHEq[4][3]='='; // row5 c4=c5
+  tgVEq[1][4]='='; // r2 c5 == r3 c5
+
+  // Start with a few givens, then reveal more until solvable by logic (no guessing)
+  let grid=tgEmpty();
+  const givens=[[0,0],[0,2],[1,3],[2,0],[3,5],[4,4],[5,1]];
+  givens.forEach(([r,c])=>grid[r][c]=tgSolution[r][c]);
+
+  function pickNext(){ for(let r=0;r<TG_SIZE;r++) for(let c=0;c<TG_SIZE;c++) if(grid[r][c]==null) return [r,c]; return null }
+  while(!tgSolveByLogic(tgClone(grid))){
+    const p=pickNext(); if(!p) break;
+    const [r,c]=p; grid[r][c]=tgSolution[r][c];
+  }
+  return grid;
+}
+function tgRender(grid){
+  tgBoard.innerHTML=''; tgCells=[];
+  for(let r=0;r<TG_SIZE;r++){
+    for(let c=0;c<TG_SIZE;c++){
+      const d=document.createElement('div');
+      d.className='cell'; d.dataset.r=r; d.dataset.c=c;
+      const v=grid[r][c];
+      d.textContent = v? v : '';
+      if(v!=null) d.dataset.lock='1';
+      if(tgHEq[r]&&tgHEq[r][c]==='=') d.classList.add('eq-right');
+      if(tgVEq[r]&&tgVEq[r][c]==='=') d.classList.add('eq-down');
+      d.onclick=()=>tgClick(d);
+      tgBoard.appendChild(d);
+      if(!tgCells[r]) tgCells[r]=[];
+      tgCells[r][c]=d;
+    }
+  }
+}
+function tgClick(d){
+  if(d.dataset.lock==='1') return;
+  const cur=d.textContent;
+  const next = cur===''?S : cur===S?M : '';
+  d.textContent=next;
+}
+function tgReadGrid(){
+  const g=tgEmpty();
+  for(let r=0;r<TG_SIZE;r++) for(let c=0;c<TG_SIZE;c++){
+    const t=tgCells[r][c].textContent;
+    g[r][c]= t===''? null : (t===S?S:M);
+  }
+  return g;
+}
+function tgSay(msg,good){
+  tgMsg.classList.remove('hidden');
+  tgMsg.innerHTML = `<span class="${good?'ok':'bad'}">${msg}</span>`;
+}
+function tgCheck(){
+  const g=tgReadGrid();
+  // counts
+  for(let r=0;r<TG_SIZE;r++){
+    if(tgCountRow(r,S,g)>3 || tgCountRow(r,M,g)>3) return tgSay('Row count exceeded',false)
+  }
+  for(let c=0;c<TG_SIZE;c++){
+    if(tgCountCol(c,S,g)>3 || tgCountCol(c,M,g)>3) return tgSay('Col count exceeded',false)
+  }
+  // no 3 in a row/col
+  for(let r=0;r<TG_SIZE;r++) for(let c=0;c<TG_SIZE-2;c++){
+    const a=g[r][c],b=g[r][c+1],d=g[r][c+2];
+    if(a&&b&&d&&a===b&&b===d) return tgSay('Three in a row found',false)
+  }
+  for(let c=0;c<TG_SIZE;c++) for(let r=0;r<TG_SIZE-2;r++){
+    const a=g[r][c],b=g[r+1][c],d=g[r+2][c];
+    if(a&&b&&d&&a===b&&b===d) return tgSay('Three in a column found',false)
+  }
+  // equality helpers
+  for(let r=0;r<TG_SIZE;r++) for(let c=0;c<TG_SIZE;c++){
+    if(tgHEq[r]&&tgHEq[r][c]==='=' && g[r][c]!=null && g[r][c+1]!=null && g[r][c]!==g[r][c+1]) return tgSay('Broken \"=\" hint',false);
+    if(tgVEq[r]&&tgVEq[r][c]==='=' && g[r][c]!=null && g[r+1]&&g[r+1][c]!=null && g[r][c]!==g[r+1][c]) return tgSay('Broken \"=\" hint',false);
+  }
+  // solved?
+  const full = g.every(r=>r.every(x=>x!=null));
+  if(full){
+    const ok = JSON.stringify(g)===JSON.stringify(tgSolution);
+    return tgSay(ok?'Solved! ✅':'Filled but not the intended solution.', ok)
+  } else {
+    return tgSay('Looks consistent so far. Keep going!', true)
+  }
+}
+function tgHint(){
+  const g=tgReadGrid();
+  const before=JSON.stringify(g);
+  if(!tgLogicOnce(g)) { tgLogicOnce(g) } // try twice if first pass does nothing
+  const after=JSON.stringify(g);
+  if(after===before){ tgSay('No single-step hint found.', false); return }
+  // apply first difference
+  for(let r=0;r<TG_SIZE;r++) for(let c=0;c<TG_SIZE;c++){
+    const beforeCell=tgCells[r][c].textContent||null;
+    const afterCell=g[r][c];
+    if((beforeCell||null)!==afterCell && afterCell!=null){
+      tgCells[r][c].textContent=afterCell;
+      tgCells[r][c].classList.add('flash');
+      setTimeout(()=>tgCells[r][c].classList.remove('flash'),180);
+      tgSay('Applied a logical deduction.', true);
+      return;
+    }
+  }
+}
+function tgNew(){ tgMsg.classList.add('hidden'); const start=tgBuildPuzzle(); tgRender(start) }
+
+document.getElementById('tgNew').onclick=tgNew;
+document.getElementById('tgHint').onclick=tgHint;
+document.getElementById('tgCheck').onclick=tgCheck;
+tgNew();
+
+
 </script>
 </body>
 </html>
