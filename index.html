@@ -1,727 +1,959 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Brain Lab — Teasers & Training</title>
-<style>
-  :root{
-    --bg:#0b0d12;--card:#12151c;--fg:#e9edf5;--muted:#a5adbb;--acc:#7cc9ff;--ok:#6ee7a3;--bad:#ff7a7a;--warn:#ffd36b;--border:#1f2430;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font:16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;background:radial-gradient(1200px 800px at 20% -10%, #142034 0%, #0b0d12 55%) fixed;color:var(--fg)}
-  .wrap{max-width:980px;margin:0 auto;padding:24px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
-  h1{font-size:22px;margin:0}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap}
-  .tab{border:1px solid var(--border);background:linear-gradient(180deg,#181c25,#12151c);color:var(--fg);padding:8px 12px;border-radius:12px;cursor:pointer;user-select:none}
-  .tab[aria-selected="true"]{outline:2px solid var(--acc);}
-  .card{background:linear-gradient(180deg,#151925,#10131b);border:1px solid var(--border);box-shadow:0 10px 30px rgba(0,0,0,.4);border-radius:16px;padding:18px;margin-top:14px}
-  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-  button, .btn{background:#1a2030;border:1px solid var(--border);color:var(--fg);padding:10px 14px;border-radius:12px;cursor:pointer}
-  button:hover{filter:brightness(1.08)}
-  .btn-ghost{background:transparent;border-color:transparent;color:var(--muted)}
-  .muted{color:var(--muted)}
-  .big{font-size:24px}
-  .center{text-align:center}
-  .grid{display:grid;gap:12px}
-  .two{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .three{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .four{grid-template-columns:repeat(4,minmax(0,1fr))}
-  input[type="text"], input[type="number"]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0f1219;color:var(--fg)}
-  .ok{color:var(--ok)}
-  .bad{color:var(--bad)}
-  .timer{font-variant-numeric:tabular-nums}
-  .pill{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#10131b;color:var(--muted);font-size:12px}
-  .hidden{display:none !important}
-  .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;background:#0c0f15;border:1px solid var(--border);padding:2px 6px;border-radius:6px}
-  .finish{padding:10px;border:1px dashed var(--border);background:#0e1220;border-radius:12px}
-  .flash{animation:flash .25s ease-out}
-  @keyframes flash{from{transform:scale(1.04);text-shadow:0 0 12px rgba(255,255,255,.08)}to{transform:scale(1);text-shadow:none}}
-  @media (max-width:680px){.two,.three,.four{grid-template-columns:1fr}}
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Brain Lab — Teasers & Training</title>
+    <style>
+        :root {
+            --bg: #0b0d12;
+            --card: #12151c;
+            --fg: #e9edf5;
+            --muted: #a5adbb;
+            --acc: #7cc9ff;
+            --ok: #6ee7a3;
+            --bad: #ff7a7a;
+            --warn: #ffd36b;
+            --border: #1f2430;
+        }
 
-/* Tango helpers */
-.board{display:grid;grid-template-columns:repeat(6,40px);gap:6px;justify-content:center}
-.cell{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:10px;background:#0f1219;cursor:pointer;position:relative}
-.cell[data-lock="1"]{background:#141a25}
-.eq-right::after{content:'=';position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted)}
-.eq-down::before{content:'=';position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--muted)}
+        * {
+            box-sizing: border-box
+        }
 
-</style>
+        body {
+            margin: 0;
+            font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+            background: radial-gradient(1200px 800px at 20% -10%, #142034 0%, #0b0d12 55%) fixed;
+            color: var(--fg)
+        }
+
+        .wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 24px
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px
+        }
+
+        h1 {
+            font-size: 22px;
+            margin: 0
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .tab {
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, #181c25, #12151c);
+            color: var(--fg);
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .tab[aria-selected="true"] {
+            outline: 2px solid var(--acc);
+        }
+
+        .card {
+            background: linear-gradient(180deg, #151925, #10131b);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
+            border-radius: 16px;
+            padding: 18px;
+            margin-top: 14px
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        button,
+        .btn {
+            background: #1a2030;
+            border: 1px solid var(--border);
+            color: var(--fg);
+            padding: 10px 14px;
+            border-radius: 12px;
+            cursor: pointer
+        }
+
+        button:hover {
+            filter: brightness(1.08)
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border-color: transparent;
+            color: var(--muted)
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .big {
+            font-size: 24px
+        }
+
+        .center {
+            text-align: center
+        }
+
+        .grid {
+            display: grid;
+            gap: 12px
+        }
+
+        .two {
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+        }
+
+        .three {
+            grid-template-columns: repeat(3, minmax(0, 1fr))
+        }
+
+        .four {
+            grid-template-columns: repeat(4, minmax(0, 1fr))
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #0f1219;
+            color: var(--fg)
+        }
+
+        .ok {
+            color: var(--ok)
+        }
+
+        .bad {
+            color: var(--bad)
+        }
+
+        .timer {
+            font-variant-numeric: tabular-nums
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #10131b;
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        .kbd {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            background: #0c0f15;
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+            border-radius: 6px
+        }
+
+        .finish {
+            padding: 10px;
+            border: 1px dashed var(--border);
+            background: #0e1220;
+            border-radius: 12px
+        }
+
+        .flash {
+            animation: flash .25s ease-out
+        }
+
+        @keyframes flash {
+            from {
+                transform: scale(1.04);
+                text-shadow: 0 0 12px rgba(255, 255, 255, .08)
+            }
+
+            to {
+                transform: scale(1);
+                text-shadow: none
+            }
+        }
+
+        @media (max-width:680px) {
+
+            .two,
+            .three,
+            .four {
+                grid-template-columns: 1fr
+            }
+        }
+
+        /* Tango helpers */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(6, 40px);
+            gap: 6px;
+            justify-content: center
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #0f1219;
+            cursor: pointer;
+            position: relative
+        }
+
+        .cell[data-lock="1"] {
+            background: #141a25
+        }
+
+        .eq-right::after {
+            content: '=';
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .eq-down::before {
+            content: '=';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: var(--muted)
+        }
+    </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <header>
-      <h1>🧠 Brain Lab</h1>
-      <div class="tabs" role="tablist" aria-label="Modes">
-        <div class="tab" role="tab" aria-selected="true" data-panel="teasers">Teasers</div>
-        <div class="tab" role="tab" aria-selected="false" data-panel="math">Speed Math</div>
-        <div class="tab" role="tab" aria-selected="false" data-panel="stroop">Stroop</div>
-        <div class="tab" role="tab" aria-selected="false" data-panel="nback">1-Back</div>
-        <div class="tab" role="tab" aria-selected="false" data-panel="nmem">Number Memory</div>
-        <div class="tab" role="tab" aria-selected="false" data-panel="read">Reading</div>
-        <div class="tab" role="tab" aria-selected="false" data-panel="tango">Tango 6×6</div>
-      </div>
-    </header>
+    <div class="wrap">
+        <header>
+            <h1>🧠 Brain Lab</h1>
+            <div class="tabs" role="tablist" aria-label="Modes">
+                <div class="tab" role="tab" aria-selected="true" data-panel="teasers">Teasers</div>
+                <div class="tab" role="tab" aria-selected="false" data-panel="math">Speed Math</div>
+                <div class="tab" role="tab" aria-selected="false" data-panel="stroop">Stroop</div>
+                <div class="tab" role="tab" aria-selected="false" data-panel="nback">1-Back</div>
+                <div class="tab" role="tab" aria-selected="false" data-panel="nmem">Number Memory</div>
+                <div class="tab" role="tab" aria-selected="false" data-panel="read">Reading</div>
+                <div class="tab" role="tab" aria-selected="false" data-panel="tango">Tango 6×6</div>
+            </div>
+        </header>
 
-    <!-- TEASERS -->
-    <section id="teasers" class="card" role="tabpanel">
-      <div class="row" style="justify-content:space-between">
-        <div>
-          <div class="pill">LinkedIn‑style & classic logic • Solved <span id="teaserSolved">0</span>/<span id="teaserTotal">0</span></div>
-          <h2 style="margin:6px 0 0">Brain Teaser</h2>
-        </div>
-        <div class="row">
-          <button id="newTeaser">New</button>
-          <button id="markSolved">Mark solved</button>
-          <button id="reveal">Reveal</button>
-        </div>
-      </div>
-      <div style="height:8px"></div>
-      <div id="teaserQ" class="big"></div>
-      <details id="answerBox" class="card" style="margin-top:14px"><summary class="muted">Answer / Hint</summary>
-        <div id="teaserA" style="margin-top:8px"></div>
-      </details>
-    </section>
+        <!-- TEASERS -->
+        <section id="teasers" class="card" role="tabpanel">
+            <div class="row" style="justify-content:space-between">
+                <div>
+                    <div class="pill">LinkedIn‑style & classic logic • Solved <span id="teaserSolved">0</span>/<span
+                            id="teaserTotal">0</span></div>
+                    <h2 style="margin:6px 0 0">Brain Teaser</h2>
+                </div>
+                <div class="row">
+                    <button id="newTeaser">New</button>
+                    <button id="markSolved">Mark solved</button>
+                    <button id="reveal">Reveal</button>
+                </div>
+            </div>
+            <div style="height:8px"></div>
+            <div id="teaserQ" class="big"></div>
+            <details id="answerBox" class="card" style="margin-top:14px">
+                <summary class="muted">Answer / Hint</summary>
+                <div id="teaserA" style="margin-top:8px"></div>
+            </details>
+        </section>
 
-    <!-- SPEED MATH -->
-    <section id="math" class="card hidden" role="tabpanel" aria-hidden="true">
-      <div class="row" style="justify-content:space-between">
-        <div>
-          <div class="pill">30s arithmetic drill • High score <span id="mathBest">0</span></div>
-          <h2 style="margin:6px 0 0">Speed Math</h2>
-        </div>
-        <div class="row"><button id="mathStart">Start</button><div class="pill timer" id="mathTime">30</div></div>
-      </div>
-      <div class="center" style="margin-top:10px">
-        <div class="big" id="mathQ">Press Start</div>
-        <div class="row center" style="justify-content:center;margin-top:10px">
-          <input id="mathInput" type="number" inputmode="numeric" placeholder="Answer" style="max-width:220px"/>
-          <button id="mathCheck">OK</button>
-        </div>
-        <div class="muted" style="margin-top:6px">Score: <span id="mathScore">0</span> • Streak <span id="mathStreak">0</span> • <span id="mathFeedback"></span></div>
-        <div id="mathFinish" class="finish hidden" style="margin-top:10px"></div>
-      </div>
-    </section>
+        <!-- SPEED MATH -->
+        <section id="math" class="card hidden" role="tabpanel" aria-hidden="true">
+            <div class="row" style="justify-content:space-between">
+                <div>
+                    <div class="pill">30s arithmetic drill • High score <span id="mathBest">0</span></div>
+                    <h2 style="margin:6px 0 0">Speed Math</h2>
+                </div>
+                <div class="row"><button id="mathStart">Start</button>
+                    <div class="pill timer" id="mathTime">30</div>
+                </div>
+            </div>
+            <div class="center" style="margin-top:10px">
+                <div class="big" id="mathQ">Press Start</div>
+                <div class="row center" style="justify-content:center;margin-top:10px">
+                    <input id="mathInput" type="number" inputmode="numeric" placeholder="Answer"
+                        style="max-width:220px" />
+                    <button id="mathCheck">OK</button>
+                </div>
+                <div class="muted" style="margin-top:6px">Score: <span id="mathScore">0</span> • Streak <span
+                        id="mathStreak">0</span> • <span id="mathFeedback"></span></div>
+                <div id="mathFinish" class="finish hidden" style="margin-top:10px"></div>
+            </div>
+        </section>
 
-    <!-- STROOP -->
-    <section id="stroop" class="card hidden" role="tabpanel" aria-hidden="true">
-      <div class="row" style="justify-content:space-between">
-        <div>
-          <div class="pill">Name the INK color • High score <span id="stroopBest">0</span></div>
-          <h2 style="margin:6px 0 0">Stroop Test</h2>
-        </div>
-        <div class="row"><button id="stroopStart">Start</button><div class="pill timer" id="stroopTime">30</div></div>
-      </div>
-      <div class="center" style="margin-top:10px">
-        <div id="stroopWord" class="big" style="font-weight:700;letter-spacing:.5px;">Press Start</div>
-        <div id="stroopBtns" class="grid two" style="max-width:520px;margin:12px auto 0"></div>
-        <div class="muted" style="margin-top:6px">Score: <span id="stroopScore">0</span> • Accuracy <span id="stroopAcc">0%</span></div>
-        <div id="stroopFinish" class="finish hidden" style="margin-top:10px"></div>
-      </div>
-    </section>
+        <!-- STROOP -->
+        <section id="stroop" class="card hidden" role="tabpanel" aria-hidden="true">
+            <div class="row" style="justify-content:space-between">
+                <div>
+                    <div class="pill">Name the INK color • High score <span id="stroopBest">0</span></div>
+                    <h2 style="margin:6px 0 0">Stroop Test</h2>
+                </div>
+                <div class="row"><button id="stroopStart">Start</button>
+                    <div class="pill timer" id="stroopTime">30</div>
+                </div>
+            </div>
+            <div class="center" style="margin-top:10px">
+                <div id="stroopWord" class="big" style="font-weight:700;letter-spacing:.5px;">Press Start</div>
+                <div id="stroopBtns" class="grid two" style="max-width:520px;margin:12px auto 0"></div>
+                <div class="muted" style="margin-top:6px">Score: <span id="stroopScore">0</span> • Accuracy <span
+                        id="stroopAcc">0%</span></div>
+                <div id="stroopFinish" class="finish hidden" style="margin-top:10px"></div>
+            </div>
+        </section>
 
-    <!-- 1-BACK -->
-    <section id="nback" class="card hidden" role="tabpanel" aria-hidden="true">
-      <div class="row" style="justify-content:space-between">
-        <div>
-          <div class="pill">Press when current == previous • High score <span id="nBest">0</span></div>
-          <h2 style="margin:6px 0 0">1‑Back Letters</h2>
-        </div>
-        <div class="row"><button id="nStart">Start</button><div class="pill timer" id="nTime">40</div></div>
-      </div>
-      <div class="center" style="margin-top:10px">
-        <div id="nIndex" class="muted" style="margin-bottom:4px">Seq: 0</div>
-        <div id="nLetter" class="big" style="font-size:42px;font-weight:700">Press Start</div>
-        <div class="row center" style="justify-content:center;margin-top:8px"><button id="nMatch">Match (<span class="kbd">Space</span>)</button></div>
-        <div class="muted" style="margin-top:6px">Score: <span id="nScore">0</span> • Hits <span id="nHits">0</span> • False <span id="nFalse">0</span></div>
-        <div id="nFinish" class="finish hidden" style="margin-top:10px"></div>
-      </div>
-    </section>
+        <!-- 1-BACK -->
+        <section id="nback" class="card hidden" role="tabpanel" aria-hidden="true">
+            <div class="row" style="justify-content:space-between">
+                <div>
+                    <div class="pill">Press when current == previous • High score <span id="nBest">0</span></div>
+                    <h2 style="margin:6px 0 0">1‑Back Letters</h2>
+                </div>
+                <div class="row"><button id="nStart">Start</button>
+                    <div class="pill timer" id="nTime">40</div>
+                </div>
+            </div>
+            <div class="center" style="margin-top:10px">
+                <div id="nIndex" class="muted" style="margin-bottom:4px">Seq: 0</div>
+                <div id="nLetter" class="big" style="font-size:42px;font-weight:700">Press Start</div>
+                <div class="row center" style="justify-content:center;margin-top:8px"><button id="nMatch">Match (<span
+                            class="kbd">Space</span>)</button></div>
+                <div class="muted" style="margin-top:6px">Score: <span id="nScore">0</span> • Hits <span
+                        id="nHits">0</span> • False <span id="nFalse">0</span></div>
+                <div id="nFinish" class="finish hidden" style="margin-top:10px"></div>
+            </div>
+        </section>
 
-    <!-- NUMBER MEMORY -->
-    <section id="nmem" class="card hidden" role="tabpanel" aria-hidden="true">
-      <div class="row" style="justify-content:space-between">
-        <div>
-          <div class="pill">Remember the number • High score <span id="nmBest">0</span></div>
-          <h2 style="margin:6px 0 0">Number Memory</h2>
-        </div>
-        <div class="row"><button id="nmStart">Start</button></div>
-      </div>
-      <div class="center" style="margin-top:10px">
-        <div id="nmShow" class="big">Press Start</div>
-        <div class="row center" style="justify-content:center;margin-top:10px">
-          <input id="nmInput" type="text" inputmode="numeric" placeholder="Type the number" style="max-width:260px"/>
-          <button id="nmCheck">OK</button>
-        </div>
-        <div class="muted" style="margin-top:6px">Level: <span id="nmLevel">0</span></div>
-        <div id="nmFinish" class="finish hidden" style="margin-top:10px"></div>
-      </div>
-    </section>
+        <!-- NUMBER MEMORY -->
+        <section id="nmem" class="card hidden" role="tabpanel" aria-hidden="true">
+            <div class="row" style="justify-content:space-between">
+                <div>
+                    <div class="pill">Remember the number • High score <span id="nmBest">0</span></div>
+                    <h2 style="margin:6px 0 0">Number Memory</h2>
+                </div>
+                <div class="row"><button id="nmStart">Start</button></div>
+            </div>
+            <div class="center" style="margin-top:10px">
+                <div id="nmShow" class="big">Press Start</div>
+                <div class="row center" style="justify-content:center;margin-top:10px">
+                    <input id="nmInput" type="text" inputmode="numeric" placeholder="Type the number"
+                        style="max-width:260px" />
+                    <button id="nmCheck">OK</button>
+                </div>
+                <div class="muted" style="margin-top:6px">Level: <span id="nmLevel">0</span></div>
+                <div id="nmFinish" class="finish hidden" style="margin-top:10px"></div>
+            </div>
+        </section>
 
-<!-- READING COMPREHENSION -->
-<section id="read" class="card hidden" role="tabpanel" aria-hidden="true">
-  <div class="row" style="justify-content:space-between">
-    <div>
-      <div class="pill">One-word display → tricky question • Best WPM <span id="rcBest">0</span></div>
-      <h2 style="margin:6px 0 0">Reading Comprehension</h2>
+        <!-- READING COMPREHENSION -->
+        <section id="read" class="card hidden" role="tabpanel" aria-hidden="true">
+            <div class="row" style="justify-content:space-between">
+                <div>
+                    <div class="pill">One-word display → tricky question • Best WPM <span id="rcBest">0</span></div>
+                    <h2 style="margin:6px 0 0">Reading Comprehension</h2>
+                </div>
+                <div class="row">
+                    <select id="rcTopic"></select>
+                    <label class="pill">WPM <span id="rcWpm">240</span></label>
+                    <input id="rcSpeed" type="range" min="120" max="700" step="10" value="240" style="width:160px" />
+                    <button id="rcStart">Start</button>
+                    <button id="rcPause">Pause</button>
+                    <button id="rcReset">Reset</button>
+                </div>
+            </div>
+            <div class="center" style="margin-top:10px">
+                <div id="rcWord" class="big" style="min-height:40px">Pick a topic and Start</div>
+                <div id="rcQA" class="finish hidden" style="margin-top:10px"></div>
+            </div>
+        </section>
+
+        <!-- TANGO 6x6 -->
+        <section id="tango" class="card hidden" role="tabpanel" aria-hidden="true">
+            <div class="row" style="justify-content:space-between">
+                <div>
+                    <div class="pill">6×6 • 3 S & 3 M per row/col • no 3 in a row • '=' hints</div>
+                    <h2 style="margin:6px 0 0">Tango</h2>
+                </div>
+                <div class="row">
+                    <button id="tgNew">New</button>
+                    <button id="tgHint">Hint</button>
+                    <button id="tgCheck">Check</button>
+                    <span class="pill">Legend: S=Sun, M=Moon</span>
+                </div>
+            </div>
+            <div class="center" style="margin-top:10px">
+                <div id="tgBoard" class="board"></div>
+                <div id="tgMsg" class="finish hidden" style="margin-top:10px"></div>
+            </div>
+        </section>
+
+
+        <p class="muted" style="margin-top:16px">Tip: Use <span class="kbd">Tab</span> to hop inputs. All games are
+            offline, single‑file.</p>
     </div>
-    <div class="row">
-      <select id="rcTopic"></select>
-      <label class="pill">WPM <span id="rcWpm">240</span></label>
-      <input id="rcSpeed" type="range" min="120" max="700" step="10" value="240" style="width:160px"/>
-      <button id="rcStart">Start</button>
-      <button id="rcPause">Pause</button>
-      <button id="rcReset">Reset</button>
-    </div>
-  </div>
-  <div class="center" style="margin-top:10px">
-    <div id="rcWord" class="big" style="min-height:40px">Pick a topic and Start</div>
-    <div id="rcQA" class="finish hidden" style="margin-top:10px"></div>
-  </div>
-</section>
 
-<!-- TANGO 6x6 -->
-<section id="tango" class="card hidden" role="tabpanel" aria-hidden="true">
-  <div class="row" style="justify-content:space-between">
-    <div>
-      <div class="pill">6×6 • 3 S & 3 M per row/col • no 3 in a row • '=' hints</div>
-      <h2 style="margin:6px 0 0">Tango</h2>
-    </div>
-    <div class="row">
-      <button id="tgNew">New</button>
-      <button id="tgHint">Hint</button>
-      <button id="tgCheck">Check</button>
-      <span class="pill">Legend: S=Sun, M=Moon</span>
-    </div>
-  </div>
-  <div class="center" style="margin-top:10px">
-    <div id="tgBoard" class="board"></div>
-    <div id="tgMsg" class="finish hidden" style="margin-top:10px"></div>
-  </div>
-</section>
+    <script>
+        // ---------- STORAGE
+        const STORE_KEY = 'brainlab_state_v2';
+        function loadState() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || { best: { math: 0, stroop: 0, nback: 0, nmem: 0 }, solved: [] } } catch (e) { return { best: { math: 0, stroop: 0, nback: 0, nmem: 0 }, solved: [] } } }
+        function saveState(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)) }
+        let STATE = loadState();
 
+        // ---------- TEASERS (expanded set)
+        const TEASERS = [
+            { q: "You have three labeled boxes: APPLES, ORANGES, MIXED. All labels are wrong. You may pick one fruit from one box. How do you relabel correctly?", a: "Pick one fruit from the MIXED box. Suppose you pull an apple. Then that box must be APPLES. The box labeled APPLES cannot be apples (labels are wrong) and cannot be mixed, so it must be ORANGES. The remaining box is MIXED." },
+            { q: "Two trains start 120 km apart and head toward each other, each at 60 km/h. A bee flies back and forth between them at 90 km/h until the trains meet. Total distance flown?", a: "Time to meet = 120/(60+60)=1 hour. Bee flies 90 km." },
+            { q: "A 5‑letter code word uses letters A, B, C, D, E exactly once. The third letter is a vowel; B is left of D; A is not adjacent to E. Give one valid word.", a: "One example: B A E C D." },
+            { q: "You see 5 hats: 3 black, 2 white. Three people wear one hat each. In order they say: 'I don't know.' 'I don't know.' Third says 'I know.' What color is the third hat?", a: "Black, by elimination: if two whites were visible the first would know immediately. This propagates to the third." },
+            { q: "You have 7‑ and 11‑minute hourglasses. Measure exactly 15 minutes.", a: "Start both. At 7: flip 7. At 11: flip 11 (7 has 3 left). When 7 empties (14): flip 11; after 1 minute = 15." },
+            { q: "A number is divisible by 3, ends with 5, and digit sum is 12. What is it?", a: "75." },
+            { q: "Five sit round a table. Alex between Bea and Cam. Dan not next to Alex. Eve sits two seats clockwise from Bea. Who sits between Dan and Eve?", a: "Cam, in one valid arrangement: Bea, Alex, Cam, Dan, Eve." },
+            { q: "You drop a 1×1×1 cube into a bucket, fill to brim, then remove cube. Overflow, same, or drop?", a: "Drop. Removing cube removes displaced volume." },
+            { q: "Pick a prime between 51 and 100 that is one less than a multiple of 6.", a: "Any of 53,59,71,83,89." },
+            { q: "Smallest positive integer that leaves remainders 1,2,3 when divided by 2,3,4 respectively?", a: "11 (it's −1 mod lcm(2,3,4)=12)." },
+            // new verbal riddles
+            { q: "A man looks at a painting and says, 'Brothers and sisters, I have none, but that man's father is my father's son.' Who is in the painting?", a: "His son." },
+            { q: "What 3‑letter word completes all: _IGHT (8), _EAD (lead), _ORE (ore) and becomes a new valid word each time?", a: "'L' → LIGHT, LEAD, LORE." },
+            { q: "You buy a $10 item. You overpay with a $20 and receive $10 and the item. Later the cashier realizes the $20 was counterfeit and pays the store $20 from their own wallet. Total loss to the cashier?", a: "$20 (they lost a real $20 and the store lost nothing net)." },
+            { q: "You have two ropes. Each burns in exactly 60 minutes but not at a consistent rate. How to measure 45 minutes?", a: "Light Rope A at both ends and Rope B at one end. When A finishes (30 min), light the other end of B (15 more) → 45." },
+            { q: "Which weighs more: a kilo of feathers or a kilo of steel?", a: "Same mass; volume differs." },
+            { q: "You meet two guards: one always lies, one always tells truth. One door leads to freedom. One question to ask one guard?", a: "Ask either: 'Which door would the other say is freedom?' Then go the other way." },
+            { q: "A farmer needs to take a fox, a chicken, and grain across a river with a boat that holds one item at a time. How?", a: "Take chicken; return; take fox; bring chicken back; take grain; return; take chicken." },
+            { q: "You have 8 balls, one is heavier, balance scale, find in 2 weighings. How?", a: "Weigh 3 vs 3. If equal, heavier is among remaining 2 → weigh 1 vs 1. Else take heavier group of 3 and weigh 1 vs 1, using logic to find the heavier." },
+            { q: "A clock shows 3:15. What is the angle between hour and minute hands?", a: "At 3:15, minute at 90°. Hour hand at 97.5°. Angle 7.5°." }
+        ];
+        let idx = 0; const qEl = document.getElementById('teaserQ'); const aEl = document.getElementById('teaserA');
+        const solvedEl = document.getElementById('teaserSolved'); const totalEl = document.getElementById('teaserTotal'); totalEl.textContent = TEASERS.length;
+        function refreshSolved() { solvedEl.textContent = STATE.solved.length }
+        function showTeaser(i) { const t = TEASERS[i % TEASERS.length]; qEl.textContent = t.q; aEl.textContent = t.a; document.getElementById('answerBox').open = false }
+        showTeaser(idx); refreshSolved();
 
-    <p class="muted" style="margin-top:16px">Tip: Use <span class="kbd">Tab</span> to hop inputs. All games are offline, single‑file.</p>
-  </div>
+        document.getElementById('newTeaser').onclick = () => { idx = (idx + 1) % TEASERS.length; showTeaser(idx) };
+        document.getElementById('reveal').onclick = () => { document.getElementById('answerBox').open = true }
+        document.getElementById('markSolved').onclick = () => { if (!STATE.solved.includes(idx)) { STATE.solved.push(idx); saveState(STATE); refreshSolved(); } }
 
-<script>
-// ---------- STORAGE
-const STORE_KEY = 'brainlab_state_v2';
-function loadState(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {best:{math:0,stroop:0,nback:0,nmem:0}, solved:[]} }catch(e){ return {best:{math:0,stroop:0,nback:0,nmem:0}, solved:[]} }}
-function saveState(s){ localStorage.setItem(STORE_KEY, JSON.stringify(s)) }
-let STATE = loadState();
+        // ---------- TABS
+        const tabs = [...document.querySelectorAll('.tab')];
+        tabs.forEach(t => t.addEventListener('click', () => {
+            tabs.forEach(x => x.setAttribute('aria-selected', 'false'));
+            t.setAttribute('aria-selected', 'true');
+            const panel = t.dataset.panel;[...document.querySelectorAll('section[role="tabpanel"]')].forEach(sec => {
+                const on = sec.id === panel; sec.classList.toggle('hidden', !on); sec.setAttribute('aria-hidden', (!on).toString());
+            })
+        }))
 
-// ---------- TEASERS (expanded set)
-const TEASERS = [
-  {q:"You have three labeled boxes: APPLES, ORANGES, MIXED. All labels are wrong. You may pick one fruit from one box. How do you relabel correctly?", a:"Pick one fruit from the MIXED box. Suppose you pull an apple. Then that box must be APPLES. The box labeled APPLES cannot be apples (labels are wrong) and cannot be mixed, so it must be ORANGES. The remaining box is MIXED."},
-  {q:"Two trains start 120 km apart and head toward each other, each at 60 km/h. A bee flies back and forth between them at 90 km/h until the trains meet. Total distance flown?", a:"Time to meet = 120/(60+60)=1 hour. Bee flies 90 km."},
-  {q:"A 5‑letter code word uses letters A, B, C, D, E exactly once. The third letter is a vowel; B is left of D; A is not adjacent to E. Give one valid word.", a:"One example: B A E C D."},
-  {q:"You see 5 hats: 3 black, 2 white. Three people wear one hat each. In order they say: 'I don't know.' 'I don't know.' Third says 'I know.' What color is the third hat?", a:"Black, by elimination: if two whites were visible the first would know immediately. This propagates to the third."},
-  {q:"You have 7‑ and 11‑minute hourglasses. Measure exactly 15 minutes.", a:"Start both. At 7: flip 7. At 11: flip 11 (7 has 3 left). When 7 empties (14): flip 11; after 1 minute = 15."},
-  {q:"A number is divisible by 3, ends with 5, and digit sum is 12. What is it?", a:"75."},
-  {q:"Five sit round a table. Alex between Bea and Cam. Dan not next to Alex. Eve sits two seats clockwise from Bea. Who sits between Dan and Eve?", a:"Cam, in one valid arrangement: Bea, Alex, Cam, Dan, Eve."},
-  {q:"You drop a 1×1×1 cube into a bucket, fill to brim, then remove cube. Overflow, same, or drop?", a:"Drop. Removing cube removes displaced volume."},
-  {q:"Pick a prime between 51 and 100 that is one less than a multiple of 6.", a:"Any of 53,59,71,83,89."},
-  {q:"Smallest positive integer that leaves remainders 1,2,3 when divided by 2,3,4 respectively?", a:"11 (it's −1 mod lcm(2,3,4)=12)."},
-  // new verbal riddles
-  {q:"A man looks at a painting and says, 'Brothers and sisters, I have none, but that man's father is my father's son.' Who is in the painting?", a:"His son."},
-  {q:"What 3‑letter word completes all: _IGHT (8), _EAD (lead), _ORE (ore) and becomes a new valid word each time?", a:"'L' → LIGHT, LEAD, LORE."},
-  {q:"You buy a $10 item. You overpay with a $20 and receive $10 and the item. Later the cashier realizes the $20 was counterfeit and pays the store $20 from their own wallet. Total loss to the cashier?", a:"$20 (they lost a real $20 and the store lost nothing net)."},
-  {q:"You have two ropes. Each burns in exactly 60 minutes but not at a consistent rate. How to measure 45 minutes?", a:"Light Rope A at both ends and Rope B at one end. When A finishes (30 min), light the other end of B (15 more) → 45."},
-  {q:"Which weighs more: a kilo of feathers or a kilo of steel?", a:"Same mass; volume differs."},
-  {q:"You meet two guards: one always lies, one always tells truth. One door leads to freedom. One question to ask one guard?", a:"Ask either: 'Which door would the other say is freedom?' Then go the other way."},
-  {q:"A farmer needs to take a fox, a chicken, and grain across a river with a boat that holds one item at a time. How?", a:"Take chicken; return; take fox; bring chicken back; take grain; return; take chicken."},
-  {q:"You have 8 balls, one is heavier, balance scale, find in 2 weighings. How?", a:"Weigh 3 vs 3. If equal, heavier is among remaining 2 → weigh 1 vs 1. Else take heavier group of 3 and weigh 1 vs 1, using logic to find the heavier."},
-  {q:"A clock shows 3:15. What is the angle between hour and minute hands?", a:"At 3:15, minute at 90°. Hour hand at 97.5°. Angle 7.5°."}
-];
-let idx=0; const qEl = document.getElementById('teaserQ'); const aEl = document.getElementById('teaserA');
-const solvedEl=document.getElementById('teaserSolved'); const totalEl=document.getElementById('teaserTotal'); totalEl.textContent=TEASERS.length;
-function refreshSolved(){ solvedEl.textContent = STATE.solved.length }
-function showTeaser(i){const t=TEASERS[i%TEASERS.length]; qEl.textContent=t.q; aEl.textContent=t.a; document.getElementById('answerBox').open=false}
-showTeaser(idx); refreshSolved();
+        // helpers
+        function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a }
 
-document.getElementById('newTeaser').onclick=()=>{idx=(idx+1)%TEASERS.length;showTeaser(idx)};
-document.getElementById('reveal').onclick=()=>{document.getElementById('answerBox').open=true}
-document.getElementById('markSolved').onclick=()=>{ if(!STATE.solved.includes(idx)){ STATE.solved.push(idx); saveState(STATE); refreshSolved(); } }
+        // ---------- SPEED MATH
+        const mathQ = document.getElementById('mathQ');
+        const mathInput = document.getElementById('mathInput');
+        const mathScoreEl = document.getElementById('mathScore');
+        const mathStreakEl = document.getElementById('mathStreak');
+        const mathFeedback = document.getElementById('mathFeedback');
+        const mathTime = document.getElementById('mathTime');
+        const mathBest = document.getElementById('mathBest'); mathBest.textContent = STATE.best.math;
+        const mathFinish = document.getElementById('mathFinish');
+        let mathTimer = null, mathLeft = 30, mathScore = 0, mathStreak = 0, truth = 0;
+        function newMathQ() {
+            const ops = ['+', '-', '×', '÷'];
+            const op = ops[randInt(0, ops.length - 1)];
+            let a = randInt(2, 25), b = randInt(2, 25);
+            if (op === '÷') { truth = a; const prod = a * b; mathQ.textContent = `${prod} ÷ ${b}` }
+            else if (op === '×') { truth = a * b; mathQ.textContent = `${a} × ${b}` }
+            else if (op === '+') { truth = a + b; mathQ.textContent = `${a} + ${b}` }
+            else { if (a < b) [a, b] = [b, a]; truth = a - b; mathQ.textContent = `${a} − ${b}` }
+            mathQ.classList.add('flash'); setTimeout(() => mathQ.classList.remove('flash'), 180);
+        }
+        function endMath() {
+            clearInterval(mathTimer); mathTimer = null; mathFeedback.textContent = '';
+            const prevBest = STATE.best.math || 0; if (mathScore > prevBest) { STATE.best.math = mathScore; saveState(STATE); mathBest.textContent = STATE.best.math; }
+            mathFinish.classList.remove('hidden');
+            mathFinish.innerHTML = `Finished! Score <b>${mathScore}</b> • Best <b>${STATE.best.math}</b> <div style="margin-top:6px"><button onclick="(${startMath.toString()})()">Play again</button></div>`;
+            mathQ.textContent = 'Done';
+        }
+        function startMath() {
+            mathFinish.classList.add('hidden');
+            mathLeft = 30; mathScore = 0; mathStreak = 0; mathScoreEl.textContent = '0'; mathStreakEl.textContent = '0'; mathTime.textContent = '30'; newMathQ(); mathInput.value = ''; mathInput.focus();
+            if (mathTimer) clearInterval(mathTimer);
+            mathTimer = setInterval(() => { mathLeft--; mathTime.textContent = String(mathLeft); if (mathLeft <= 0) { endMath() } }, 1000);
+        }
+        function checkMath() {
+            const val = Number(mathInput.value);
+            if (Number.isFinite(val) && val === truth) { mathScore++; mathStreak++; mathFeedback.textContent = '✔'; mathFeedback.className = 'ok'; newMathQ() } else { mathStreak = 0; mathFeedback.textContent = '✖'; mathFeedback.className = 'bad' }
+            mathScoreEl.textContent = String(mathScore); mathStreakEl.textContent = String(mathStreak); mathInput.value = ''; mathInput.focus()
+        }
 
-// ---------- TABS
-const tabs=[...document.querySelectorAll('.tab')];
-tabs.forEach(t=>t.addEventListener('click',()=>{
-  tabs.forEach(x=>x.setAttribute('aria-selected','false'));
-  t.setAttribute('aria-selected','true');
-  const panel=t.dataset.panel; [...document.querySelectorAll('section[role="tabpanel"]')].forEach(sec=>{
-    const on = sec.id===panel; sec.classList.toggle('hidden',!on); sec.setAttribute('aria-hidden',(!on).toString());
-  })
-}))
+        document.getElementById('mathStart').onclick = startMath;
+        document.getElementById('mathCheck').onclick = checkMath;
+        mathInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkMath() });
 
-// helpers
-function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+        // ---------- STROOP
+        const COLORS = [
+            { name: 'RED', css: '#ef4444' },
+            { name: 'BLUE', css: '#3b82f6' },
+            { name: 'GREEN', css: '#22c55e' },
+            { name: 'YELLOW', css: '#eab308' },
+            { name: 'PURPLE', css: '#a855f7' }
+        ];
+        const stroopWord = document.getElementById('stroopWord');
+        const stroopBtns = document.getElementById('stroopBtns');
+        const stroopScoreEl = document.getElementById('stroopScore');
+        const stroopAccEl = document.getElementById('stroopAcc');
+        const stroopTime = document.getElementById('stroopTime');
+        const stroopBest = document.getElementById('stroopBest'); stroopBest.textContent = STATE.best.stroop;
+        const stroopFinish = document.getElementById('stroopFinish');
+        let stroopTimer = null, stroopLeft = 30, stroopScore = 0, stroopTries = 0, stroopAnswer = '';
+        function setupStroopButtons() { stroopBtns.innerHTML = ''; COLORS.forEach(c => { const b = document.createElement('button'); b.textContent = c.name; b.style.borderColor = c.css; b.onclick = () => pickStroop(c.name); stroopBtns.appendChild(b) }) }
+        function newStroop() { const word = COLORS[Math.floor(Math.random() * COLORS.length)].name; const ink = COLORS[Math.floor(Math.random() * COLORS.length)]; stroopAnswer = ink.name; stroopWord.textContent = word; stroopWord.style.color = ink.css; stroopWord.classList.add('flash'); setTimeout(() => stroopWord.classList.remove('flash'), 180) }
+        function pickStroop(name) { if (!stroopTimer) return; stroopTries++; if (name === stroopAnswer) stroopScore++; stroopScoreEl.textContent = String(stroopScore); stroopAccEl.textContent = `${Math.round(100 * (stroopTries ? stroopScore / stroopTries : 0))}%`; newStroop() }
+        function endStroop() {
+            clearInterval(stroopTimer); stroopTimer = null;
+            const prevBest = STATE.best.stroop || 0; if (stroopScore > prevBest) { STATE.best.stroop = stroopScore; saveState(STATE); stroopBest.textContent = STATE.best.stroop; }
+            stroopFinish.classList.remove('hidden');
+            stroopFinish.innerHTML = `Finished! Score <b>${stroopScore}</b> • Acc <b>${Math.round(100 * (stroopTries ? stroopScore / stroopTries : 0))}%</b> • Best <b>${STATE.best.stroop}</b> <div style="margin-top:6px"><button onclick="(${startStroop.toString()})()">Play again</button></div>`;
+            stroopWord.textContent = 'Done';
+        }
+        function startStroop() {
+            stroopFinish.classList.add('hidden');
+            stroopLeft = 30; stroopScore = 0; stroopTries = 0; stroopScoreEl.textContent = '0'; stroopAccEl.textContent = '0%'; stroopTime.textContent = '30'; newStroop(); if (stroopTimer) clearInterval(stroopTimer); stroopTimer = setInterval(() => { stroopLeft--; stroopTime.textContent = String(stroopLeft); if (stroopLeft <= 0) endStroop() }, 1000)
+        }
+        setupStroopButtons();
+        document.getElementById('stroopStart').onclick = startStroop;
 
-// ---------- SPEED MATH
-const mathQ=document.getElementById('mathQ');
-const mathInput=document.getElementById('mathInput');
-const mathScoreEl=document.getElementById('mathScore');
-const mathStreakEl=document.getElementById('mathStreak');
-const mathFeedback=document.getElementById('mathFeedback');
-const mathTime=document.getElementById('mathTime');
-const mathBest=document.getElementById('mathBest'); mathBest.textContent=STATE.best.math;
-const mathFinish=document.getElementById('mathFinish');
-let mathTimer=null, mathLeft=30, mathScore=0, mathStreak=0, truth=0;
-function newMathQ(){
-  const ops=['+','-','×','÷'];
-  const op=ops[randInt(0,ops.length-1)];
-  let a=randInt(2,25), b=randInt(2,25);
-  if(op==='÷'){truth = a; const prod = a*b; mathQ.textContent = `${prod} ÷ ${b}`}
-  else if(op==='×'){truth = a*b; mathQ.textContent = `${a} × ${b}`}
-  else if(op==='+'){truth = a+b; mathQ.textContent = `${a} + ${b}`}
-  else { if(a<b) [a,b]=[b,a]; truth = a-b; mathQ.textContent = `${a} − ${b}`}
-  mathQ.classList.add('flash'); setTimeout(()=>mathQ.classList.remove('flash'),180);
-}
-function endMath(){
-  clearInterval(mathTimer); mathTimer=null; mathFeedback.textContent='';
-  const prevBest = STATE.best.math||0; if(mathScore>prevBest){ STATE.best.math=mathScore; saveState(STATE); mathBest.textContent=STATE.best.math; }
-  mathFinish.classList.remove('hidden');
-  mathFinish.innerHTML = `Finished! Score <b>${mathScore}</b> • Best <b>${STATE.best.math}</b> <div style="margin-top:6px"><button onclick="(${startMath.toString()})()">Play again</button></div>`;
-  mathQ.textContent='Done';
-}
-function startMath(){
-  mathFinish.classList.add('hidden');
-  mathLeft=30; mathScore=0; mathStreak=0; mathScoreEl.textContent='0'; mathStreakEl.textContent='0'; mathTime.textContent='30'; newMathQ(); mathInput.value=''; mathInput.focus();
-  if(mathTimer) clearInterval(mathTimer);
-  mathTimer=setInterval(()=>{mathLeft--; mathTime.textContent=String(mathLeft); if(mathLeft<=0){endMath()}},1000);
-}
-function checkMath(){
-  const val=Number(mathInput.value);
-  if(Number.isFinite(val) && val===truth){mathScore++; mathStreak++; mathFeedback.textContent='✔'; mathFeedback.className='ok'; newMathQ()} else {mathStreak=0; mathFeedback.textContent='✖'; mathFeedback.className='bad'}
-  mathScoreEl.textContent=String(mathScore); mathStreakEl.textContent=String(mathStreak); mathInput.value=''; mathInput.focus()
-}
+        // ---------- 1-BACK
+        const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXZ'.split(''); // avoid I/O/Y/0
+        const nLetter = document.getElementById('nLetter');
+        const nTime = document.getElementById('nTime');
+        const nScoreEl = document.getElementById('nScore');
+        const nHits = document.getElementById('nHits');
+        const nFalse = document.getElementById('nFalse');
+        const nBest = document.getElementById('nBest'); nBest.textContent = STATE.best.nback;
+        const nFinish = document.getElementById('nFinish');
+        const nIndex = document.getElementById('nIndex');
 
-document.getElementById('mathStart').onclick=startMath;
-document.getElementById('mathCheck').onclick=checkMath;
-mathInput.addEventListener('keydown',e=>{if(e.key==='Enter') checkMath()});
+        let nTimer = null, seq = [], targetPos = new Set(), seqIdx = 0, allow = false;
+        let nScore = 0, nHit = 0, nFalseC = 0, totalTargets = 0;
 
-// ---------- STROOP
-const COLORS=[
-  {name:'RED', css:'#ef4444'},
-  {name:'BLUE', css:'#3b82f6'},
-  {name:'GREEN', css:'#22c55e'},
-  {name:'YELLOW', css:'#eab308'},
-  {name:'PURPLE', css:'#a855f7'}
-];
-const stroopWord=document.getElementById('stroopWord');
-const stroopBtns=document.getElementById('stroopBtns');
-const stroopScoreEl=document.getElementById('stroopScore');
-const stroopAccEl=document.getElementById('stroopAcc');
-const stroopTime=document.getElementById('stroopTime');
-const stroopBest=document.getElementById('stroopBest'); stroopBest.textContent=STATE.best.stroop;
-const stroopFinish=document.getElementById('stroopFinish');
-let stroopTimer=null, stroopLeft=30, stroopScore=0, stroopTries=0, stroopAnswer='';
-function setupStroopButtons(){stroopBtns.innerHTML=''; COLORS.forEach(c=>{const b=document.createElement('button'); b.textContent=c.name; b.style.borderColor=c.css; b.onclick=()=>pickStroop(c.name); stroopBtns.appendChild(b)})}
-function newStroop(){const word=COLORS[Math.floor(Math.random()*COLORS.length)].name; const ink=COLORS[Math.floor(Math.random()*COLORS.length)]; stroopAnswer=ink.name; stroopWord.textContent=word; stroopWord.style.color=ink.css; stroopWord.classList.add('flash'); setTimeout(()=>stroopWord.classList.remove('flash'),180)}
-function pickStroop(name){if(!stroopTimer) return; stroopTries++; if(name===stroopAnswer) stroopScore++; stroopScoreEl.textContent=String(stroopScore); stroopAccEl.textContent = `${Math.round(100* (stroopTries?stroopScore/stroopTries:0))}%`; newStroop()}
-function endStroop(){
-  clearInterval(stroopTimer); stroopTimer=null;
-  const prevBest = STATE.best.stroop||0; if(stroopScore>prevBest){ STATE.best.stroop=stroopScore; saveState(STATE); stroopBest.textContent=STATE.best.stroop; }
-  stroopFinish.classList.remove('hidden');
-  stroopFinish.innerHTML = `Finished! Score <b>${stroopScore}</b> • Acc <b>${Math.round(100*(stroopTries?stroopScore/stroopTries:0))}%</b> • Best <b>${STATE.best.stroop}</b> <div style="margin-top:6px"><button onclick="(${startStroop.toString()})()">Play again</button></div>`;
-  stroopWord.textContent='Done';
-}
-function startStroop(){
-  stroopFinish.classList.add('hidden');
-  stroopLeft=30; stroopScore=0; stroopTries=0; stroopScoreEl.textContent='0'; stroopAccEl.textContent='0%'; stroopTime.textContent='30'; newStroop(); if(stroopTimer) clearInterval(stroopTimer); stroopTimer=setInterval(()=>{stroopLeft--; stroopTime.textContent=String(stroopLeft); if(stroopLeft<=0) endStroop()},1000)
-}
-setupStroopButtons();
-document.getElementById('stroopStart').onclick=startStroop;
+        function makeNBackSequence(len = 30, targets = 8) {
+            const s = new Array(len);
+            targetPos = new Set();
 
-// ---------- 1-BACK
-const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXZ'.split(''); // avoid I/O/Y/0
-const nLetter = document.getElementById('nLetter');
-const nTime   = document.getElementById('nTime');
-const nScoreEl= document.getElementById('nScore');
-const nHits   = document.getElementById('nHits');
-const nFalse  = document.getElementById('nFalse');
-const nBest   = document.getElementById('nBest'); nBest.textContent = STATE.best.nback;
-const nFinish = document.getElementById('nFinish');
-const nIndex  = document.getElementById('nIndex');
+            // choose target indices from 1..len-1 (positions that can repeat previous)
+            const pool = [...Array(len - 1).keys()].map(i => i + 1);
+            for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[pool[i], pool[j]] = [pool[j], pool[i]]; }
+            const picks = new Set(pool.slice(0, targets));
 
-let nTimer=null, seq=[], targetPos=new Set(), seqIdx=0, allow=false;
-let nScore=0, nHit=0, nFalseC=0, totalTargets=0;
+            s[0] = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+            for (let i = 1; i < len; i++) {
+                if (picks.has(i)) { s[i] = s[i - 1]; targetPos.add(i); }
+                else {
+                    let c; do { c = LETTERS[Math.floor(Math.random() * LETTERS.length)] } while (c === s[i - 1]);
+                    s[i] = c;
+                }
+            }
+            totalTargets = targetPos.size; // safety
+            return s;
+        }
 
-function makeNBackSequence(len=30, targets=8){
-  const s = new Array(len);
-  targetPos = new Set();
+        function stepN() {
+            if (seqIdx >= seq.length) { endN(); return; }
+            nIndex.textContent = `Seq: ${seqIdx + 1} / ${seq.length} • Targets this run: ${totalTargets}`;
+            nLetter.textContent = seq[seqIdx];
+            nLetter.classList.add('flash'); setTimeout(() => nLetter.classList.remove('flash'), 180);
+            allow = true;
+            nTime.textContent = String(seq.length - seqIdx - 1); // seconds left (1 item/sec)
+            seqIdx++;
+        }
 
-  // choose target indices from 1..len-1 (positions that can repeat previous)
-  const pool = [...Array(len-1).keys()].map(i=>i+1);
-  for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
-  const picks = new Set(pool.slice(0, targets));
+        function pressMatch() {
+            if (!nTimer || !allow) return;
+            const isTarget = targetPos.has(seqIdx - 1); // current item index is seqIdx-1
+            if (isTarget) { nScore++; nHit++; } else { nScore = Math.max(0, nScore - 1); nFalseC++; }
+            nScoreEl.textContent = String(nScore);
+            nHits.textContent = String(nHit);
+            nFalse.textContent = String(nFalseC);
+            allow = false;
+        }
 
-  s[0] = LETTERS[Math.floor(Math.random()*LETTERS.length)];
-  for (let i=1;i<len;i++){
-    if(picks.has(i)){ s[i]=s[i-1]; targetPos.add(i); }
-    else{
-      let c; do{ c = LETTERS[Math.floor(Math.random()*LETTERS.length)] } while(c===s[i-1]);
-      s[i]=c;
-    }
-  }
-  totalTargets = targetPos.size; // safety
-  return s;
-}
-
-function stepN(){
-  if(seqIdx>=seq.length){ endN(); return; }
-  nIndex.textContent = `Seq: ${seqIdx+1} / ${seq.length} • Targets this run: ${totalTargets}`;
-  nLetter.textContent = seq[seqIdx];
-  nLetter.classList.add('flash'); setTimeout(()=>nLetter.classList.remove('flash'),180);
-  allow = true;
-  nTime.textContent = String(seq.length - seqIdx - 1); // seconds left (1 item/sec)
-  seqIdx++;
-}
-
-function pressMatch(){
-  if(!nTimer || !allow) return;
-  const isTarget = targetPos.has(seqIdx-1); // current item index is seqIdx-1
-  if(isTarget){ nScore++; nHit++; } else { nScore = Math.max(0, nScore-1); nFalseC++; }
-  nScoreEl.textContent = String(nScore);
-  nHits.textContent = String(nHit);
-  nFalse.textContent = String(nFalseC);
-  allow = false;
-}
-
-function endN(){
-  clearInterval(nTimer); nTimer=null; allow=false;
-  const misses = Math.max(0, totalTargets - nHit);
-  if(nHit > (STATE.best.nback||0)){ STATE.best.nback = nHit; saveState(STATE); nBest.textContent = STATE.best.nback; }
-  nFinish.classList.remove('hidden');
-  nFinish.innerHTML = `Finished! Hits <b>${nHit}</b> / ${totalTargets} • Missed <b>${misses}</b> • False <b>${nFalseC}</b> • Best hits <b>${STATE.best.nback}</b>
+        function endN() {
+            clearInterval(nTimer); nTimer = null; allow = false;
+            const misses = Math.max(0, totalTargets - nHit);
+            if (nHit > (STATE.best.nback || 0)) { STATE.best.nback = nHit; saveState(STATE); nBest.textContent = STATE.best.nback; }
+            nFinish.classList.remove('hidden');
+            nFinish.innerHTML = `Finished! Hits <b>${nHit}</b> / ${totalTargets} • Missed <b>${misses}</b> • False <b>${nFalseC}</b> • Best hits <b>${STATE.best.nback}</b>
     <div style="margin-top:6px"><button onclick="(${startN.toString()})()">Play again</button></div>`;
-  nLetter.textContent='Done';
-}
+            nLetter.textContent = 'Done';
+        }
 
-function startN(){
-  nFinish.classList.add('hidden');
-  // Comparable: fixed length & target count. Double speed: 1 item/sec.
-  seq = makeNBackSequence(30, 8); // 30 items, exactly 8 targets
-  seqIdx=0; nScore=0; nHit=0; nFalseC=0; allow=false;
-  nScoreEl.textContent='0'; nHits.textContent='0'; nFalse.textContent='0';
-  if(nTimer) clearInterval(nTimer);
-  stepN();                                // first immediately
-  nTimer = setInterval(stepN, 1000);      // then every 1s
-}
+        function startN() {
+            nFinish.classList.add('hidden');
+            // Comparable: fixed length & target count. Double speed: 1 item/sec.
+            seq = makeNBackSequence(30, 8); // 30 items, exactly 8 targets
+            seqIdx = 0; nScore = 0; nHit = 0; nFalseC = 0; allow = false;
+            nScoreEl.textContent = '0'; nHits.textContent = '0'; nFalse.textContent = '0';
+            if (nTimer) clearInterval(nTimer);
+            stepN();                                // first immediately
+            nTimer = setInterval(stepN, 1000);      // then every 1s
+        }
 
-document.getElementById('nStart').onclick = startN;
-document.getElementById('nMatch').onclick = pressMatch;
-window.addEventListener('keydown', e => { if(e.code==='Space'){ e.preventDefault(); pressMatch(); } });
-
-
-// ---------- NUMBER MEMORY
-const nmShow=document.getElementById('nmShow');
-const nmInput=document.getElementById('nmInput');
-const nmLevelEl=document.getElementById('nmLevel');
-const nmBestEl=document.getElementById('nmBest'); nmBestEl.textContent=STATE.best.nmem;
-const nmFinish=document.getElementById('nmFinish');
-let nmLevel=0, nmCurrent='';
-function randDigits(n){ let s=''; for(let i=0;i<n;i++) s+=String(Math.floor(Math.random()*10)); return s }
-function nmStart(){ nmFinish.classList.add('hidden'); nmLevel=1; nmLevelEl.textContent='1'; nmNext() }
-function nmNext(){ nmCurrent = randDigits(nmLevel); nmShow.textContent=nmCurrent; nmShow.classList.add('flash'); setTimeout(()=>{nmShow.textContent='…';}, 900); nmInput.value=''; nmInput.focus() }
-function nmCheck(){ const ok = nmInput.value.trim()===nmCurrent; if(ok){ nmLevel++; nmLevelEl.textContent=String(nmLevel); nmNext() } else { const bestPrev=STATE.best.nmem||0; const achieved = Math.max(1, nmLevel-1); if(achieved>bestPrev){ STATE.best.nmem=achieved; saveState(STATE); nmBestEl.textContent=STATE.best.nmem } nmFinish.classList.remove('hidden'); nmFinish.innerHTML=`Finished! Level reached <b>${achieved}</b> • Best <b>${STATE.best.nmem}</b> <div style="margin-top:6px"><button onclick="(${nmStart.toString()})()">Play again</button></div>`; nmShow.textContent='Done' }
-}
-
-document.getElementById('nmStart').onclick=nmStart;
-document.getElementById('nmCheck').onclick=nmCheck;
-nmInput.addEventListener('keydown',e=>{if(e.key==='Enter') nmCheck()});
+        document.getElementById('nStart').onclick = startN;
+        document.getElementById('nMatch').onclick = pressMatch;
+        window.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); pressMatch(); } });
 
 
-// ---------- READING COMPREHENSION
-if(!STATE.best.rc) STATE.best.rc = {};
+        // ---------- NUMBER MEMORY
+        const nmShow = document.getElementById('nmShow');
+        const nmInput = document.getElementById('nmInput');
+        const nmLevelEl = document.getElementById('nmLevel');
+        const nmBestEl = document.getElementById('nmBest'); nmBestEl.textContent = STATE.best.nmem;
+        const nmFinish = document.getElementById('nmFinish');
+        let nmLevel = 0, nmCurrent = '';
+        function randDigits(n) { let s = ''; for (let i = 0; i < n; i++) s += String(Math.floor(Math.random() * 10)); return s }
+        function nmStart() { nmFinish.classList.add('hidden'); nmLevel = 1; nmLevelEl.textContent = '1'; nmNext() }
+        function nmNext() { nmCurrent = randDigits(nmLevel); nmShow.textContent = nmCurrent; nmShow.classList.add('flash'); setTimeout(() => { nmShow.textContent = '…'; }, 900); nmInput.value = ''; nmInput.focus() }
+        function nmCheck() {
+            const ok = nmInput.value.trim() === nmCurrent; if (ok) { nmLevel++; nmLevelEl.textContent = String(nmLevel); nmNext() } else { const bestPrev = STATE.best.nmem || 0; const achieved = Math.max(1, nmLevel - 1); if (achieved > bestPrev) { STATE.best.nmem = achieved; saveState(STATE); nmBestEl.textContent = STATE.best.nmem } nmFinish.classList.remove('hidden'); nmFinish.innerHTML = `Finished! Level reached <b>${achieved}</b> • Best <b>${STATE.best.nmem}</b> <div style="margin-top:6px"><button onclick="(${nmStart.toString()})()">Play again</button></div>`; nmShow.textContent = 'Done' }
+        }
 
-const RC_TOPICS=[
-  {topic:'Coffee trade',
-   text:"Brazil exported roasted coffee to Italy after a drought eased, while Italy reduced shipments back to Brazil, focusing instead on espresso machine sales to France.",
-   q:"Based on the passage, which direction was the coffee moving?",
-   choices:["Italy → Brazil","Brazil → Italy","France → Brazil"], answer:1},
-  {topic:'Space probes',
-   text:"Pioneer 10 launched before Voyager 2, but only Voyager carried the Golden Record. Both probes flew past giant planets; Voyager took the famous portrait of the Solar System.",
-   q:"Which probe launched first?",
-   choices:["Voyager 2","Pioneer 10","Both together"], answer:1},
-  {topic:'Rivers & cities',
-   text:"The Arlen River flows north into the Calder. City X lies upstream of City Y on the Arlen, yet south of the Calder delta.",
-   q:"Relative to City Y, where is City X on the Arlen?",
-   choices:["Downstream","Upstream","Same location"], answer:1},
-  {topic:'History note',
-   text:"In 1867, Country A ceded its northern territory to Country B. Decades later, A imported timber from B while exporting coal to C.",
-   q:"Who ceded territory to whom?",
-   choices:["B → A","A → B","C → A"], answer:1}
-];
-
-const rcTopicSel=document.getElementById('rcTopic');
-const rcWord=document.getElementById('rcWord');
-const rcQA=document.getElementById('rcQA');
-const rcBestEl=document.getElementById('rcBest');
-const rcSpeed=document.getElementById('rcSpeed');
-const rcWpm=document.getElementById('rcWpm');
-const rcStart=document.getElementById('rcStart');
-const rcPause=document.getElementById('rcPause');
-const rcReset=document.getElementById('rcReset');
-
-let rcTimer=null, rcIdx=0, rcWords=[], rcPaused=false;
-
-function rcFillTopics(){
-  rcTopicSel.innerHTML='';
-  RC_TOPICS.forEach((t,i)=>{
-    const o=document.createElement('option');
-    o.value=String(i); o.textContent=t.topic;
-    rcTopicSel.appendChild(o);
-  });
-  rcUpdateBest();
-}
-function rcUpdateBest(){
-  const t=RC_TOPICS[Number(rcTopicSel.value||0)];
-  const best=(STATE.best.rc[t.topic]||0);
-  rcBestEl.textContent=best;
-}
-function rcShowNext(){
-  if(rcIdx>=rcWords.length){
-    clearInterval(rcTimer); rcTimer=null;
-    rcAsk(); return;
-  }
-  rcWord.textContent=rcWords[rcIdx++];
-  rcWord.classList.add('flash'); setTimeout(()=>rcWord.classList.remove('flash'),150);
-}
-function rcStartRun(){
-  rcQA.classList.add('hidden'); rcQA.innerHTML='';
-  const t=RC_TOPICS[Number(rcTopicSel.value||0)];
-  rcWords=t.text.split(/\s+/);
-  rcIdx=0; rcShowNext(); rcPaused=false;
-  if(rcTimer) clearInterval(rcTimer);
-  const ms=Math.max(60, Math.round(60000/Number(rcSpeed.value))); // speedable
-  rcTimer=setInterval(rcShowNext, ms);
-}
-function rcPauseRun(){
-  if(!rcTimer){ return }
-  clearInterval(rcTimer); rcTimer=null; rcPaused=true;
-  rcWord.textContent += ' ▌';
-}
-function rcResetRun(){
-  if(rcTimer){ clearInterval(rcTimer); rcTimer=null }
-  rcWord.textContent='Pick a topic and Start';
-  rcQA.classList.add('hidden');
-}
-function rcAsk(){
-  const t=RC_TOPICS[Number(rcTopicSel.value||0)];
-  rcWord.textContent='?';
-  rcQA.classList.remove('hidden');
-  const wrap=document.createElement('div');
-  wrap.innerHTML=`<div><b>${t.q}</b></div>`;
-  t.choices.forEach((c,i)=>{
-    const b=document.createElement('button');
-    b.textContent=c; b.style.margin='6px';
-    b.onclick=()=>rcAnswer(i);
-    wrap.appendChild(b);
-  });
-  rcQA.innerHTML=''; rcQA.appendChild(wrap);
-}
-function rcAnswer(i){
-  const t=RC_TOPICS[Number(rcTopicSel.value||0)];
-  const correct=i===t.answer;
-  rcQA.innerHTML = `You are <b class="${correct?'ok':'bad'}">${correct?'correct':'wrong'}</b>.` + (correct? ' Nice.':'');
-  if(correct){
-    const wpm=Number(rcSpeed.value);
-    const best=STATE.best.rc[t.topic]||0;
-    if(wpm>best){ STATE.best.rc[t.topic]=wpm; saveState(STATE); rcBestEl.textContent=wpm }
-  }
-}
-rcSpeed.oninput=()=>{ rcWpm.textContent=rcSpeed.value; if(rcTimer){ clearInterval(rcTimer); const ms=Math.max(60, Math.round(60000/Number(rcSpeed.value))); rcTimer=setInterval(rcShowNext, ms) } };
-rcStart.onclick=rcStartRun; rcPause.onclick=rcPauseRun; rcReset.onclick=rcResetRun; rcTopicSel.onchange=rcUpdateBest;
-rcFillTopics();
-
-// ---------- TANGO (6×6, logical only, no guessing)
-const TG_SIZE=6; const S='S', M='M';
-const tgBoard=document.getElementById('tgBoard');
-const tgMsg=document.getElementById('tgMsg');
-let tgCells=[], tgHEq=[], tgVEq=[], tgSolution=[];
-
-function tgSolutionFixed(){
-  // A valid 6×6 (3S/3M per row/col; no 3 in a row/col)
-  return [
-    [S,S,M, M,S,M],
-    [M,M,S, S,M,S],
-    [S,M,M, S,S,M],
-    [M,S,S, M,M,S],
-    [S,M,S, M,M,S],
-    [M,S,M, S,S,M]
-  ];
-}
-function tgEmpty(){ return Array.from({length:TG_SIZE},()=>Array(TG_SIZE).fill(null)) }
-function tgClone(a){ return a.map(r=>r.slice()) }
-function tgCountRow(r,val,g){ return g[r].filter(x=>x===val).length }
-function tgCountCol(c,val,g){ let n=0; for(let r=0;r<TG_SIZE;r++) if(g[r][c]===val) n++; return n }
-function tgApplyEq(g){
-  let changed=false;
-  for(let r=0;r<TG_SIZE;r++){
-    for(let c=0;c<TG_SIZE;c++){
-      if(g[r][c]!=null){
-        if(tgHEq[r]&&tgHEq[r][c]==='=' && g[r][c+1]==null){ g[r][c+1]=g[r][c]; changed=true }
-        if(tgVEq[r]&&tgVEq[r][c]==='=' && g[r+1]&&g[r+1][c]==null){ g[r+1][c]=g[r][c]; changed=true }
-      }
-    }
-  }
-  return changed;
-}
-function tgLogicOnce(g){
-  let changed=false;
-  // A) No three same in a row (rows)
-  for(let r=0;r<TG_SIZE;r++){
-    for(let c=0;c<TG_SIZE-2;c++){
-      const a=g[r][c], b=g[r][c+1], d=g[r][c+2];
-      if(a===b && a!=null && d==null){ g[r][c+2]=(a===S?M:S); changed=true }
-      if(b===d && b!=null && a==null){ g[r][c]=(b===S?M:S); changed=true }
-      if(a===d && a!=null && b==null){ g[r][c+1]=(a===S?M:S); changed=true }
-    }
-  }
-  // A) No three same in a row (cols)
-  for(let c=0;c<TG_SIZE;c++){
-    for(let r=0;r<TG_SIZE-2;r++){
-      const a=g[r][c], b=g[r+1][c], d=g[r+2][c];
-      if(a===b && a!=null && d==null){ g[r+2][c]=(a===S?M:S); changed=true }
-      if(b===d && b!=null && a==null){ g[r][c]=(b===S?M:S); changed=true }
-      if(a===d && a!=null && b==null){ g[r+1][c]=(a===S?M:S); changed=true }
-    }
-  }
-  // B) 3 per row/col
-  for(let r=0;r<TG_SIZE;r++){
-    if(tgCountRow(r,S,g)===3){ for(let c=0;c<TG_SIZE;c++) if(g[r][c]==null){ g[r][c]=M; changed=true } }
-    if(tgCountRow(r,M,g)===3){ for(let c=0;c<TG_SIZE;c++) if(g[r][c]==null){ g[r][c]=S; changed=true } }
-  }
-  for(let c=0;c<TG_SIZE;c++){
-    if(tgCountCol(c,S,g)===3){ for(let r=0;r<TG_SIZE;r++) if(g[r][c]==null){ g[r][c]=M; changed=true } }
-    if(tgCountCol(c,M,g)===3){ for(let r=0;r<TG_SIZE;r++) if(g[r][c]==null){ g[r][c]=S; changed=true } }
-  }
-  // C) '=' helpers
-  if(tgApplyEq(g)) changed=true;
-  return changed;
-}
-function tgSolveByLogic(g){
-  let guard=0, changed;
-  do{ changed=tgLogicOnce(g); guard++ }while(changed && guard<200);
-  return g.every(r=>r.every(x=>x!=null));
-}
-function tgBuildPuzzle(){
-  tgSolution=tgSolutionFixed();
-  tgHEq=tgEmpty(); tgVEq=tgEmpty();
-  // sprinkle equality hints consistent with solution
-  tgHEq[2][1]='='; // row3 c2=c3
-  tgHEq[4][3]='='; // row5 c4=c5
-  tgVEq[1][4]='='; // r2 c5 == r3 c5
-
-  // Start with a few givens, then reveal more until solvable by logic (no guessing)
-  let grid=tgEmpty();
-  const givens=[[0,0],[0,2],[1,3],[2,0],[3,5],[4,4],[5,1]];
-  givens.forEach(([r,c])=>grid[r][c]=tgSolution[r][c]);
-
-  function pickNext(){ for(let r=0;r<TG_SIZE;r++) for(let c=0;c<TG_SIZE;c++) if(grid[r][c]==null) return [r,c]; return null }
-  while(!tgSolveByLogic(tgClone(grid))){
-    const p=pickNext(); if(!p) break;
-    const [r,c]=p; grid[r][c]=tgSolution[r][c];
-  }
-  return grid;
-}
-function tgRender(grid){
-  tgBoard.innerHTML=''; tgCells=[];
-  for(let r=0;r<TG_SIZE;r++){
-    for(let c=0;c<TG_SIZE;c++){
-      const d=document.createElement('div');
-      d.className='cell'; d.dataset.r=r; d.dataset.c=c;
-      const v=grid[r][c];
-      d.textContent = v? v : '';
-      if(v!=null) d.dataset.lock='1';
-      if(tgHEq[r]&&tgHEq[r][c]==='=') d.classList.add('eq-right');
-      if(tgVEq[r]&&tgVEq[r][c]==='=') d.classList.add('eq-down');
-      d.onclick=()=>tgClick(d);
-      tgBoard.appendChild(d);
-      if(!tgCells[r]) tgCells[r]=[];
-      tgCells[r][c]=d;
-    }
-  }
-}
-function tgClick(d){
-  if(d.dataset.lock==='1') return;
-  const cur=d.textContent;
-  const next = cur===''?S : cur===S?M : '';
-  d.textContent=next;
-}
-function tgReadGrid(){
-  const g=tgEmpty();
-  for(let r=0;r<TG_SIZE;r++) for(let c=0;c<TG_SIZE;c++){
-    const t=tgCells[r][c].textContent;
-    g[r][c]= t===''? null : (t===S?S:M);
-  }
-  return g;
-}
-function tgSay(msg,good){
-  tgMsg.classList.remove('hidden');
-  tgMsg.innerHTML = `<span class="${good?'ok':'bad'}">${msg}</span>`;
-}
-function tgCheck(){
-  const g=tgReadGrid();
-  // counts
-  for(let r=0;r<TG_SIZE;r++){
-    if(tgCountRow(r,S,g)>3 || tgCountRow(r,M,g)>3) return tgSay('Row count exceeded',false)
-  }
-  for(let c=0;c<TG_SIZE;c++){
-    if(tgCountCol(c,S,g)>3 || tgCountCol(c,M,g)>3) return tgSay('Col count exceeded',false)
-  }
-  // no 3 in a row/col
-  for(let r=0;r<TG_SIZE;r++) for(let c=0;c<TG_SIZE-2;c++){
-    const a=g[r][c],b=g[r][c+1],d=g[r][c+2];
-    if(a&&b&&d&&a===b&&b===d) return tgSay('Three in a row found',false)
-  }
-  for(let c=0;c<TG_SIZE;c++) for(let r=0;r<TG_SIZE-2;r++){
-    const a=g[r][c],b=g[r+1][c],d=g[r+2][c];
-    if(a&&b&&d&&a===b&&b===d) return tgSay('Three in a column found',false)
-  }
-  // equality helpers
-  for(let r=0;r<TG_SIZE;r++) for(let c=0;c<TG_SIZE;c++){
-    if(tgHEq[r]&&tgHEq[r][c]==='=' && g[r][c]!=null && g[r][c+1]!=null && g[r][c]!==g[r][c+1]) return tgSay('Broken \"=\" hint',false);
-    if(tgVEq[r]&&tgVEq[r][c]==='=' && g[r][c]!=null && g[r+1]&&g[r+1][c]!=null && g[r][c]!==g[r+1][c]) return tgSay('Broken \"=\" hint',false);
-  }
-  // solved?
-  const full = g.every(r=>r.every(x=>x!=null));
-  if(full){
-    const ok = JSON.stringify(g)===JSON.stringify(tgSolution);
-    return tgSay(ok?'Solved! ✅':'Filled but not the intended solution.', ok)
-  } else {
-    return tgSay('Looks consistent so far. Keep going!', true)
-  }
-}
-function tgHint(){
-  const g=tgReadGrid();
-  const before=JSON.stringify(g);
-  if(!tgLogicOnce(g)) { tgLogicOnce(g) } // try twice if first pass does nothing
-  const after=JSON.stringify(g);
-  if(after===before){ tgSay('No single-step hint found.', false); return }
-  // apply first difference
-  for(let r=0;r<TG_SIZE;r++) for(let c=0;c<TG_SIZE;c++){
-    const beforeCell=tgCells[r][c].textContent||null;
-    const afterCell=g[r][c];
-    if((beforeCell||null)!==afterCell && afterCell!=null){
-      tgCells[r][c].textContent=afterCell;
-      tgCells[r][c].classList.add('flash');
-      setTimeout(()=>tgCells[r][c].classList.remove('flash'),180);
-      tgSay('Applied a logical deduction.', true);
-      return;
-    }
-  }
-}
-function tgNew(){ tgMsg.classList.add('hidden'); const start=tgBuildPuzzle(); tgRender(start) }
-
-document.getElementById('tgNew').onclick=tgNew;
-document.getElementById('tgHint').onclick=tgHint;
-document.getElementById('tgCheck').onclick=tgCheck;
-tgNew();
+        document.getElementById('nmStart').onclick = nmStart;
+        document.getElementById('nmCheck').onclick = nmCheck;
+        nmInput.addEventListener('keydown', e => { if (e.key === 'Enter') nmCheck() });
 
 
-</script>
+        // ---------- READING COMPREHENSION
+        if (!STATE.best.rc) STATE.best.rc = {};
+
+        const RC_TOPICS = [
+            {
+                topic: 'Coffee trade',
+                text: "Brazil exported roasted coffee to Italy after a drought eased, while Italy reduced shipments back to Brazil, focusing instead on espresso machine sales to France.",
+                q: "Based on the passage, which direction was the coffee moving?",
+                choices: ["Italy → Brazil", "Brazil → Italy", "France → Brazil"], answer: 1
+            },
+            {
+                topic: 'Space probes',
+                text: "Pioneer 10 launched before Voyager 2, but only Voyager carried the Golden Record. Both probes flew past giant planets; Voyager took the famous portrait of the Solar System.",
+                q: "Which probe launched first?",
+                choices: ["Voyager 2", "Pioneer 10", "Both together"], answer: 1
+            },
+            {
+                topic: 'Rivers & cities',
+                text: "The Arlen River flows north into the Calder. City X lies upstream of City Y on the Arlen, yet south of the Calder delta.",
+                q: "Relative to City Y, where is City X on the Arlen?",
+                choices: ["Downstream", "Upstream", "Same location"], answer: 1
+            },
+            {
+                topic: 'History note',
+                text: "In 1867, Country A ceded its northern territory to Country B. Decades later, A imported timber from B while exporting coal to C.",
+                q: "Who ceded territory to whom?",
+                choices: ["B → A", "A → B", "C → A"], answer: 1
+            }
+        ];
+
+        const rcTopicSel = document.getElementById('rcTopic');
+        const rcWord = document.getElementById('rcWord');
+        const rcQA = document.getElementById('rcQA');
+        const rcBestEl = document.getElementById('rcBest');
+        const rcSpeed = document.getElementById('rcSpeed');
+        const rcWpm = document.getElementById('rcWpm');
+        const rcStart = document.getElementById('rcStart');
+        const rcPause = document.getElementById('rcPause');
+        const rcReset = document.getElementById('rcReset');
+
+        let rcTimer = null, rcIdx = 0, rcWords = [], rcPaused = false;
+
+        function rcFillTopics() {
+            rcTopicSel.innerHTML = '';
+            RC_TOPICS.forEach((t, i) => {
+                const o = document.createElement('option');
+                o.value = String(i); o.textContent = t.topic;
+                rcTopicSel.appendChild(o);
+            });
+            rcUpdateBest();
+        }
+        function rcUpdateBest() {
+            const t = RC_TOPICS[Number(rcTopicSel.value || 0)];
+            const best = (STATE.best.rc[t.topic] || 0);
+            rcBestEl.textContent = best;
+        }
+        function rcShowNext() {
+            if (rcIdx >= rcWords.length) {
+                clearInterval(rcTimer); rcTimer = null;
+                rcAsk(); return;
+            }
+            rcWord.textContent = rcWords[rcIdx++];
+            rcWord.classList.add('flash'); setTimeout(() => rcWord.classList.remove('flash'), 150);
+        }
+        function rcStartRun() {
+            rcQA.classList.add('hidden'); rcQA.innerHTML = '';
+            const t = RC_TOPICS[Number(rcTopicSel.value || 0)];
+            rcWords = t.text.split(/\s+/);
+            rcIdx = 0; rcShowNext(); rcPaused = false;
+            if (rcTimer) clearInterval(rcTimer);
+            const ms = Math.max(60, Math.round(60000 / Number(rcSpeed.value))); // speedable
+            rcTimer = setInterval(rcShowNext, ms);
+        }
+        function rcPauseRun() {
+            if (!rcTimer) { return }
+            clearInterval(rcTimer); rcTimer = null; rcPaused = true;
+            rcWord.textContent += ' ▌';
+        }
+        function rcResetRun() {
+            if (rcTimer) { clearInterval(rcTimer); rcTimer = null }
+            rcWord.textContent = 'Pick a topic and Start';
+            rcQA.classList.add('hidden');
+        }
+        function rcAsk() {
+            const t = RC_TOPICS[Number(rcTopicSel.value || 0)];
+            rcWord.textContent = '?';
+            rcQA.classList.remove('hidden');
+            const wrap = document.createElement('div');
+            wrap.innerHTML = `<div><b>${t.q}</b></div>`;
+            t.choices.forEach((c, i) => {
+                const b = document.createElement('button');
+                b.textContent = c; b.style.margin = '6px';
+                b.onclick = () => rcAnswer(i);
+                wrap.appendChild(b);
+            });
+            rcQA.innerHTML = ''; rcQA.appendChild(wrap);
+        }
+        function rcAnswer(i) {
+            const t = RC_TOPICS[Number(rcTopicSel.value || 0)];
+            const correct = i === t.answer;
+            rcQA.innerHTML = `You are <b class="${correct ? 'ok' : 'bad'}">${correct ? 'correct' : 'wrong'}</b>.` + (correct ? ' Nice.' : '');
+            if (correct) {
+                const wpm = Number(rcSpeed.value);
+                const best = STATE.best.rc[t.topic] || 0;
+                if (wpm > best) { STATE.best.rc[t.topic] = wpm; saveState(STATE); rcBestEl.textContent = wpm }
+            }
+        }
+        rcSpeed.oninput = () => { rcWpm.textContent = rcSpeed.value; if (rcTimer) { clearInterval(rcTimer); const ms = Math.max(60, Math.round(60000 / Number(rcSpeed.value))); rcTimer = setInterval(rcShowNext, ms) } };
+        rcStart.onclick = rcStartRun; rcPause.onclick = rcPauseRun; rcReset.onclick = rcResetRun; rcTopicSel.onchange = rcUpdateBest;
+        rcFillTopics();
+
+        // ---------- TANGO (6×6, logical only, no guessing)
+        const TG_SIZE = 6; const S = 'S', M = 'M';
+        const tgBoard = document.getElementById('tgBoard');
+        const tgMsg = document.getElementById('tgMsg');
+        let tgCells = [], tgHEq = [], tgVEq = [], tgSolution = [];
+
+        function tgSolutionFixed() {
+            // A valid 6×6 (3S/3M per row/col; no 3 in a row/col)
+            return [
+                [S, S, M, M, S, M],
+                [M, M, S, S, M, S],
+                [S, M, M, S, S, M],
+                [M, S, S, M, M, S],
+                [S, M, S, M, M, S],
+                [M, S, M, S, S, M]
+            ];
+        }
+        function tgEmpty() { return Array.from({ length: TG_SIZE }, () => Array(TG_SIZE).fill(null)) }
+        function tgClone(a) { return a.map(r => r.slice()) }
+        function tgCountRow(r, val, g) { return g[r].filter(x => x === val).length }
+        function tgCountCol(c, val, g) { let n = 0; for (let r = 0; r < TG_SIZE; r++) if (g[r][c] === val) n++; return n }
+        function tgApplyEq(g) {
+            let changed = false;
+            for (let r = 0; r < TG_SIZE; r++) {
+                for (let c = 0; c < TG_SIZE; c++) {
+                    if (g[r][c] != null) {
+                        if (tgHEq[r] && tgHEq[r][c] === '=' && g[r][c + 1] == null) { g[r][c + 1] = g[r][c]; changed = true }
+                        if (tgVEq[r] && tgVEq[r][c] === '=' && g[r + 1] && g[r + 1][c] == null) { g[r + 1][c] = g[r][c]; changed = true }
+                    }
+                }
+            }
+            return changed;
+        }
+        function tgLogicOnce(g) {
+            let changed = false;
+            // A) No three same in a row (rows)
+            for (let r = 0; r < TG_SIZE; r++) {
+                for (let c = 0; c < TG_SIZE - 2; c++) {
+                    const a = g[r][c], b = g[r][c + 1], d = g[r][c + 2];
+                    if (a === b && a != null && d == null) { g[r][c + 2] = (a === S ? M : S); changed = true }
+                    if (b === d && b != null && a == null) { g[r][c] = (b === S ? M : S); changed = true }
+                    if (a === d && a != null && b == null) { g[r][c + 1] = (a === S ? M : S); changed = true }
+                }
+            }
+            // A) No three same in a row (cols)
+            for (let c = 0; c < TG_SIZE; c++) {
+                for (let r = 0; r < TG_SIZE - 2; r++) {
+                    const a = g[r][c], b = g[r + 1][c], d = g[r + 2][c];
+                    if (a === b && a != null && d == null) { g[r + 2][c] = (a === S ? M : S); changed = true }
+                    if (b === d && b != null && a == null) { g[r][c] = (b === S ? M : S); changed = true }
+                    if (a === d && a != null && b == null) { g[r + 1][c] = (a === S ? M : S); changed = true }
+                }
+            }
+            // B) 3 per row/col
+            for (let r = 0; r < TG_SIZE; r++) {
+                if (tgCountRow(r, S, g) === 3) { for (let c = 0; c < TG_SIZE; c++) if (g[r][c] == null) { g[r][c] = M; changed = true } }
+                if (tgCountRow(r, M, g) === 3) { for (let c = 0; c < TG_SIZE; c++) if (g[r][c] == null) { g[r][c] = S; changed = true } }
+            }
+            for (let c = 0; c < TG_SIZE; c++) {
+                if (tgCountCol(c, S, g) === 3) { for (let r = 0; r < TG_SIZE; r++) if (g[r][c] == null) { g[r][c] = M; changed = true } }
+                if (tgCountCol(c, M, g) === 3) { for (let r = 0; r < TG_SIZE; r++) if (g[r][c] == null) { g[r][c] = S; changed = true } }
+            }
+            // C) '=' helpers
+            if (tgApplyEq(g)) changed = true;
+            return changed;
+        }
+        function tgSolveByLogic(g) {
+            let guard = 0, changed;
+            do { changed = tgLogicOnce(g); guard++ } while (changed && guard < 200);
+            return g.every(r => r.every(x => x != null));
+        }
+        function tgBuildPuzzle() {
+            tgSolution = tgSolutionFixed();
+            tgHEq = tgEmpty(); tgVEq = tgEmpty();
+            // sprinkle equality hints consistent with solution
+            tgHEq[2][1] = '='; // row3 c2=c3
+            tgHEq[4][3] = '='; // row5 c4=c5
+            tgVEq[1][4] = '='; // r2 c5 == r3 c5
+
+            // Start with a few givens, then reveal more until solvable by logic (no guessing)
+            let grid = tgEmpty();
+            const givens = [[0, 0], [0, 2], [1, 3], [2, 0], [3, 5], [4, 4], [5, 1]];
+            givens.forEach(([r, c]) => grid[r][c] = tgSolution[r][c]);
+
+            function pickNext() { for (let r = 0; r < TG_SIZE; r++) for (let c = 0; c < TG_SIZE; c++) if (grid[r][c] == null) return [r, c]; return null }
+            while (!tgSolveByLogic(tgClone(grid))) {
+                const p = pickNext(); if (!p) break;
+                const [r, c] = p; grid[r][c] = tgSolution[r][c];
+            }
+            return grid;
+        }
+        function tgRender(grid) {
+            tgBoard.innerHTML = ''; tgCells = [];
+            for (let r = 0; r < TG_SIZE; r++) {
+                for (let c = 0; c < TG_SIZE; c++) {
+                    const d = document.createElement('div');
+                    d.className = 'cell'; d.dataset.r = r; d.dataset.c = c;
+                    const v = grid[r][c];
+                    d.textContent = v ? v : '';
+                    if (v != null) d.dataset.lock = '1';
+                    if (tgHEq[r] && tgHEq[r][c] === '=') d.classList.add('eq-right');
+                    if (tgVEq[r] && tgVEq[r][c] === '=') d.classList.add('eq-down');
+                    d.onclick = () => tgClick(d);
+                    tgBoard.appendChild(d);
+                    if (!tgCells[r]) tgCells[r] = [];
+                    tgCells[r][c] = d;
+                }
+            }
+        }
+        function tgClick(d) {
+            if (d.dataset.lock === '1') return;
+            const cur = d.textContent;
+            const next = cur === '' ? S : cur === S ? M : '';
+            d.textContent = next;
+        }
+        function tgReadGrid() {
+            const g = tgEmpty();
+            for (let r = 0; r < TG_SIZE; r++) for (let c = 0; c < TG_SIZE; c++) {
+                const t = tgCells[r][c].textContent;
+                g[r][c] = t === '' ? null : (t === S ? S : M);
+            }
+            return g;
+        }
+        function tgSay(msg, good) {
+            tgMsg.classList.remove('hidden');
+            tgMsg.innerHTML = `<span class="${good ? 'ok' : 'bad'}">${msg}</span>`;
+        }
+        function tgCheck() {
+            const g = tgReadGrid();
+            // counts
+            for (let r = 0; r < TG_SIZE; r++) {
+                if (tgCountRow(r, S, g) > 3 || tgCountRow(r, M, g) > 3) return tgSay('Row count exceeded', false)
+            }
+            for (let c = 0; c < TG_SIZE; c++) {
+                if (tgCountCol(c, S, g) > 3 || tgCountCol(c, M, g) > 3) return tgSay('Col count exceeded', false)
+            }
+            // no 3 in a row/col
+            for (let r = 0; r < TG_SIZE; r++) for (let c = 0; c < TG_SIZE - 2; c++) {
+                const a = g[r][c], b = g[r][c + 1], d = g[r][c + 2];
+                if (a && b && d && a === b && b === d) return tgSay('Three in a row found', false)
+            }
+            for (let c = 0; c < TG_SIZE; c++) for (let r = 0; r < TG_SIZE - 2; r++) {
+                const a = g[r][c], b = g[r + 1][c], d = g[r + 2][c];
+                if (a && b && d && a === b && b === d) return tgSay('Three in a column found', false)
+            }
+            // equality helpers
+            for (let r = 0; r < TG_SIZE; r++) for (let c = 0; c < TG_SIZE; c++) {
+                if (tgHEq[r] && tgHEq[r][c] === '=' && g[r][c] != null && g[r][c + 1] != null && g[r][c] !== g[r][c + 1]) return tgSay('Broken \"=\" hint', false);
+                if (tgVEq[r] && tgVEq[r][c] === '=' && g[r][c] != null && g[r + 1] && g[r + 1][c] != null && g[r][c] !== g[r + 1][c]) return tgSay('Broken \"=\" hint', false);
+            }
+            // solved?
+            const full = g.every(r => r.every(x => x != null));
+            if (full) {
+                const ok = JSON.stringify(g) === JSON.stringify(tgSolution);
+                return tgSay(ok ? 'Solved! ✅' : 'Filled but not the intended solution.', ok)
+            } else {
+                return tgSay('Looks consistent so far. Keep going!', true)
+            }
+        }
+        function tgHint() {
+            const g = tgReadGrid();
+            const before = JSON.stringify(g);
+            if (!tgLogicOnce(g)) { tgLogicOnce(g) } // try twice if first pass does nothing
+            const after = JSON.stringify(g);
+            if (after === before) { tgSay('No single-step hint found.', false); return }
+            // apply first difference
+            for (let r = 0; r < TG_SIZE; r++) for (let c = 0; c < TG_SIZE; c++) {
+                const beforeCell = tgCells[r][c].textContent || null;
+                const afterCell = g[r][c];
+                if ((beforeCell || null) !== afterCell && afterCell != null) {
+                    tgCells[r][c].textContent = afterCell;
+                    tgCells[r][c].classList.add('flash');
+                    setTimeout(() => tgCells[r][c].classList.remove('flash'), 180);
+                    tgSay('Applied a logical deduction.', true);
+                    return;
+                }
+            }
+        }
+        function tgNew() { tgMsg.classList.add('hidden'); const start = tgBuildPuzzle(); tgRender(start) }
+
+        document.getElementById('tgNew').onclick = tgNew;
+        document.getElementById('tgHint').onclick = tgHint;
+        document.getElementById('tgCheck').onclick = tgCheck;
+        tgNew();
+
+
+    </script>
 </body>
+
 </html>
