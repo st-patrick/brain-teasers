@@ -253,7 +253,19 @@
             font-size: 12px;
             color: var(--muted)
         }
+
+        /* Futoshiki (4×4) */
+        .futo-board { display:grid; grid-template-columns:repeat(4,40px); gap:6px; justify-content:center }
+        .futo-cell { width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+        border:1px solid var(--border); border-radius:10px; background:#0f1219; cursor:pointer; position:relative; font-weight:600 }
+        .futo-cell[data-lock="1"] { background:#141a25; cursor:default }
+        .lt-right::after { content:'‹'; position:absolute; right:-10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--muted) }
+        .gt-right::after { content:'›'; position:absolute; right:-10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--muted) }
+        .lt-down::before  { content:'∧'; position:absolute; bottom:-12px; left:50%; transform:translateX(-50%); font-size:12px; color:var(--muted) }
+        .gt-down::before  { content:'∨'; position:absolute; bottom:-12px; left:50%; transform:translateX(-50%); font-size:12px; color:var(--muted) }
+
     </style>
+    <script src="rc_topics.js"></script>
 </head>
 
 <body>
@@ -264,7 +276,10 @@
                 <div class="tab" role="tab" aria-selected="true" data-panel="teasers">Teasers</div>
                 <div class="tab" role="tab" aria-selected="false" data-panel="math">Speed Math</div>
                 <div class="tab" role="tab" aria-selected="false" data-panel="stroop">Stroop</div>
-                <div class="tab" role="tab" aria-selected="false" data-panel="nback">1-Back</div>
+                <div class="tab" role="tab" aria-selected="false" data-panel="gng">Go/No-Go</div>
+                <div class="tab" role="tab" aria-selected="false" data-panel="estroop">Emotional Stroop</div>
+                <div class="tab" role="tab" aria-selected="false" data-panel="futo">Futoshiki 4×4</div>
+                <div class="tab" role="tab" aria-selected="false" data-panel="nback">N-Back</div>
                 <div class="tab" role="tab" aria-selected="false" data-panel="nmem">Number Memory</div>
                 <div class="tab" role="tab" aria-selected="false" data-panel="read">Reading</div>
                 <div class="tab" role="tab" aria-selected="false" data-panel="tango">Tango 6×6</div>
@@ -275,7 +290,7 @@
         <section id="teasers" class="card" role="tabpanel">
             <div class="row" style="justify-content:space-between">
                 <div>
-                    <div class="pill">LinkedIn‑style & classic logic • Solved <span id="teaserSolved">0</span>/<span
+                    <div class="pill">Solved <span id="teaserSolved">0</span>/<span
                             id="teaserTotal">0</span></div>
                     <h2 style="margin:6px 0 0">Brain Teaser</h2>
                 </div>
@@ -337,27 +352,91 @@
             </div>
         </section>
 
-        <!-- 1-BACK -->
-        <section id="nback" class="card hidden" role="tabpanel" aria-hidden="true">
+        <!-- GO/NO-GO -->
+        <section id="gng" class="card hidden" role="tabpanel" aria-hidden="true">
+        <div class="row" style="justify-content:space-between">
+            <div>
+            <div class="pill">Tap on GO, withhold on NO-GO • Best <span id="gngBest">0%</span></div>
+            <h2 style="margin:6px 0 0">Go/No-Go</h2>
+            </div>
+            <div class="row">
+            <label class="pill">No-Go % <span id="gngProbLbl">20</span></label>
+            <input id="gngProb" type="range" min="10" max="40" step="5" value="20" style="width:140px" />
+            <button id="gngStart">Start</button>
+            </div>
+        </div>
+        <div class="center" style="margin-top:10px">
+            <div id="gngStim" class="big" style="height:60px">Press Start</div>
+            <div class="row center" style="justify-content:center;margin-top:8px">
+            <button id="gngGoBtn">GO (<span class="kbd">G</span>)</button>
+            </div>
+            <div class="muted" style="margin-top:6px">
+            Trials: <span id="gngCount">0</span> • Hits <span id="gngHits">0</span> • False alarms <span id="gngFA">0</span> • Acc <span id="gngAcc">0%</span>
+            </div>
+            <div id="gngFinish" class="finish hidden" style="margin-top:10px"></div>
+        </div>
+        </section>
+
+        <!-- EMOTIONAL STROOP -->
+        <section id="estroop" class="card hidden" role="tabpanel" aria-hidden="true">
             <div class="row" style="justify-content:space-between">
                 <div>
-                    <div class="pill">Press when current == previous • High score <span id="nBest">0</span></div>
-                    <h2 style="margin:6px 0 0">1‑Back Letters</h2>
+                <div class="pill">Name the INK color (emotion words) • Best <span id="esBest">0</span></div>
+                <h2 style="margin:6px 0 0">Emotional Stroop</h2>
                 </div>
-                <div class="row"><button id="nStart">Start</button>
-                    <div class="pill timer" id="nTime">40</div>
+                <div class="row"><button id="esStart">Start</button>
+                <div class="pill timer" id="esTime">30</div>
                 </div>
             </div>
             <div class="center" style="margin-top:10px">
-                <div id="nIndex" class="muted" style="margin-bottom:4px">Seq: 0</div>
-                <div id="nLetter" class="big" style="font-size:42px;font-weight:700">Press Start</div>
-                <div class="row center" style="justify-content:center;margin-top:8px"><button id="nMatch">Match (<span
-                            class="kbd">Space</span>)</button></div>
-                <div class="muted" style="margin-top:6px">Score: <span id="nScore">0</span> • Hits <span
-                        id="nHits">0</span> • False <span id="nFalse">0</span></div>
-                <div id="nFinish" class="finish hidden" style="margin-top:10px"></div>
+                <div id="esWord" class="big" style="font-weight:700;letter-spacing:.5px;">Press Start</div>
+                <div id="esBtns" class="grid two" style="max-width:520px;margin:12px auto 0"></div>
+                <div class="muted" style="margin-top:6px">Score: <span id="esScore">0</span> • Acc <span id="esAcc">0%</span></div>
+                <div id="esFinish" class="finish hidden" style="margin-top:10px"></div>
             </div>
+            </section>
+
+
+
+        <!-- N-BACK -->
+        <section id="nback" class="card hidden" role="tabpanel" aria-hidden="true">
+        <div class="row" style="justify-content:space-between">
+            <div>
+            <div class="pill">Press the feature that repeats N steps back • Best hits <span id="nbBest">0</span></div>
+            <h2 style="margin:6px 0 0">N-Back (Multi-Feature)</h2>
+            </div>
+            <div class="row">
+            <label class="pill">N
+                <select id="nbN">
+                <option>1</option><option>2</option><option>3</option>
+                </select>
+            </label>
+            <label class="pill"><input type="checkbox" id="nbFeatSymbol" checked /> Symbol</label>
+            <label class="pill"><input type="checkbox" id="nbFeatColor" checked /> Color</label>
+            <label class="pill"><input type="checkbox" id="nbFeatSize" /> Size</label>
+            <label class="pill"><input type="checkbox" id="nbFeatPos" /> Position</label>
+            <label class="pill">Set
+                <select id="nbSet"><option>Letters</option><option>Digits</option></select>
+            </label>
+            <button id="nbStart">Start</button>
+            <div class="pill timer" id="nbTime">40</div>
+            </div>
+        </div>
+        <div class="center" style="margin-top:10px">
+            <div style="height:140px; display:grid; place-items:center;">
+            <div id="nbArena" style="width:120px;height:120px;position:relative;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:4px;">
+                <!-- symbol injected & positioned absolutely -->
+                <div id="nbSym" style="position:absolute; inset:auto; font-weight:700; font-size:42px;">Press Start</div>
+            </div>
+            </div>
+            <div id="nbBtns" class="grid two" style="max-width:520px;margin:8px auto 0"></div>
+            <div class="muted" style="margin-top:6px">
+            Hits <span id="nbHits">0</span> • False <span id="nbFalse">0</span> • Targets <span id="nbTargets">0</span>
+            </div>
+            <div id="nbFinish" class="finish hidden" style="margin-top:10px"></div>
+        </div>
         </section>
+
 
         <!-- NUMBER MEMORY -->
         <section id="nmem" class="card hidden" role="tabpanel" aria-hidden="true">
@@ -366,7 +445,10 @@
                     <div class="pill">Remember the number • High score <span id="nmBest">0</span></div>
                     <h2 style="margin:6px 0 0">Number Memory</h2>
                 </div>
-                <div class="row"><button id="nmStart">Start</button></div>
+                <div class="row">
+                    <button id="nmStart">Start</button>
+                    <label class="pill"><input id="nmBackward" type="checkbox" /> Backward</label>
+                </div>
             </div>
             <div class="center" style="margin-top:10px">
                 <div id="nmShow" class="big">Press Start</div>
@@ -422,9 +504,40 @@
             </div>
         </section>
 
+        <!-- FUTOSHIKI 4x4 -->
+        <section id="futo" class="card hidden" role="tabpanel" aria-hidden="true">
+        <div class="row" style="justify-content:space-between">
+            <div>
+            <div class="pill">4×4 • Fill 1–4 • Respect “‹/›/∧/∨” inequalities</div>
+            <h2 style="margin:6px 0 0">Futoshiki 4×4</h2>
+            </div>
+            <div class="row">
+            <button id="futoNew">New</button>
+            <button id="futoCheck">Check</button>
+            </div>
+        </div>
+        <div class="center" style="margin-top:10px">
+            <div id="futoBoard" class="futo-board"></div>
+            <div class="muted" style="margin-top:8px">Click cells to cycle 1–4. “‹/›” mean left cell is &lt; or &gt; right; “∧/∨” mean top &lt; or &gt; bottom.</div>
+            <div class="muted" style="margin-top:8px">
+Goal: Fill the 4×4 grid with numbers 1–4 so each row and column contains every number exactly once (no repeats).
 
-        <p class="muted" style="margin-top:16px">Tip: Use <span class="kbd">Tab</span> to hop inputs. All games are
-            offline, single‑file.</p>
+Inequalities must hold:
+‹ means left < right, › means left > right, ∧ means top < bottom, ∨ means top > bottom.
+
+Givens are fixed (darker cells).
+
+Controls: Click a cell to cycle 1 → 2 → 3 → 4 → (blank).
+
+Tips: Start from the strongest “< / >” chains and rows/cols missing many numbers; use inequalities to eliminate candidates before filling.               
+            </div>
+            <div id="futoMsg" class="finish hidden" style="margin-top:10px"></div>
+        </div>
+        </section>
+
+
+
+        <p class="muted" style="margin-top:16px">All games work offline. No accounts, no tracking. <a href="https://www.paypal.com/paypalme/PatrickReinbold" target="_blank" style="color: lightblue">💙 Tip jar here</a>.</p>
     </div>
 
     <script>
@@ -433,13 +546,17 @@
         function loadState() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || { best: { math: 0, stroop: 0, nback: 0, nmem: 0 }, solved: [] } } catch (e) { return { best: { math: 0, stroop: 0, nback: 0, nmem: 0 }, solved: [] } } }
         function saveState(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)) }
         let STATE = loadState();
+        // ensure new best slots exist
+        STATE.best = STATE.best || {};
+        for (const k of ['gng','estroop','nbmulti','futo']) if (!(k in STATE.best)) STATE.best[k] = 0;
+        saveState(STATE);
+
 
         // ---------- TEASERS (expanded set)
         const TEASERS = [
             { q: "You have three labeled boxes: APPLES, ORANGES, MIXED. All labels are wrong. You may pick one fruit from one box. How do you relabel correctly?", a: "Pick one fruit from the MIXED box. Suppose you pull an apple. Then that box must be APPLES. The box labeled APPLES cannot be apples (labels are wrong) and cannot be mixed, so it must be ORANGES. The remaining box is MIXED." },
             { q: "Two trains start 120 km apart and head toward each other, each at 60 km/h. A bee flies back and forth between them at 90 km/h until the trains meet. Total distance flown?", a: "Time to meet = 120/(60+60)=1 hour. Bee flies 90 km." },
             { q: "A 5‑letter code word uses letters A, B, C, D, E exactly once. The third letter is a vowel; B is left of D; A is not adjacent to E. Give one valid word.", a: "One example: B A E C D." },
-            { q: "You see 5 hats: 3 black, 2 white. Three people wear one hat each. In order they say: 'I don't know.' 'I don't know.' Third says 'I know.' What color is the third hat?", a: "Black, by elimination: if two whites were visible the first would know immediately. This propagates to the third." },
             { q: "You have 7‑ and 11‑minute hourglasses. Measure exactly 15 minutes.", a: "Start both. At 7: flip 7. At 11: flip 11 (7 has 3 left). When 7 empties (14): flip 11; after 1 minute = 15." },
             { q: "A number is divisible by 3, ends with 5, and digit sum is 12. What is it?", a: "75." },
             { q: "Five sit round a table. Alex between Bea and Cam. Dan not next to Alex. Eve sits two seats clockwise from Bea. Who sits between Dan and Eve?", a: "Cam, in one valid arrangement: Bea, Alex, Cam, Dan, Eve." },
@@ -556,85 +673,238 @@
         setupStroopButtons();
         document.getElementById('stroopStart').onclick = startStroop;
 
-        // ---------- 1-BACK
-        const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXZ'.split(''); // avoid I/O/Y/0
-        const nLetter = document.getElementById('nLetter');
-        const nTime = document.getElementById('nTime');
-        const nScoreEl = document.getElementById('nScore');
-        const nHits = document.getElementById('nHits');
-        const nFalse = document.getElementById('nFalse');
-        const nBest = document.getElementById('nBest'); nBest.textContent = STATE.best.nback;
-        const nFinish = document.getElementById('nFinish');
-        const nIndex = document.getElementById('nIndex');
 
-        let nTimer = null, seq = [], targetPos = new Set(), seqIdx = 0, allow = false;
-        let nScore = 0, nHit = 0, nFalseC = 0, totalTargets = 0;
 
-        function makeNBackSequence(len = 30, targets = 8) {
-            const s = new Array(len);
-            targetPos = new Set();
 
-            // choose target indices from 1..len-1 (positions that can repeat previous)
-            const pool = [...Array(len - 1).keys()].map(i => i + 1);
-            for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[pool[i], pool[j]] = [pool[j], pool[i]]; }
-            const picks = new Set(pool.slice(0, targets));
 
-            s[0] = LETTERS[Math.floor(Math.random() * LETTERS.length)];
-            for (let i = 1; i < len; i++) {
-                if (picks.has(i)) { s[i] = s[i - 1]; targetPos.add(i); }
-                else {
-                    let c; do { c = LETTERS[Math.floor(Math.random() * LETTERS.length)] } while (c === s[i - 1]);
-                    s[i] = c;
-                }
-            }
-            totalTargets = targetPos.size; // safety
-            return s;
+
+        // ---------- GO/NO-GO ----------
+        const gngStim = document.getElementById('gngStim');
+        const gngStart = document.getElementById('gngStart');
+        const gngGoBtn = document.getElementById('gngGoBtn');
+        const gngProb = document.getElementById('gngProb');
+        const gngProbLbl = document.getElementById('gngProbLbl');
+        const gngCount = document.getElementById('gngCount');
+        const gngHits = document.getElementById('gngHits');
+        const gngFA = document.getElementById('gngFA');
+        const gngAcc = document.getElementById('gngAcc');
+        const gngBest = document.getElementById('gngBest');
+        const gngFinish = document.getElementById('gngFinish');
+        gngBest.textContent = `${STATE.best.gng||0}%`;
+        let gngTimer=null, gngTrial=0, gngTotal=60, gngNoGoSet=new Set(), gngHit=0, gngFalse=0, gngAllow=false, gWasNoGo=false;
+
+        gngProb.oninput=()=>gngProbLbl.textContent=gngProb.value;
+
+        function gngPlanTrials(pNoGo=20){ // percent
+        gngNoGoSet.clear();
+        const nNoGo = Math.round(gngTotal * pNoGo/100);
+        const pool=[...Array(gngTotal).keys()];
+        for(let i=pool.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [pool[i],pool[j]]=[pool[j],pool[i]] }
+        pool.slice(0,nNoGo).forEach(i=>gngNoGoSet.add(i));
         }
-
-        function stepN() {
-            if (seqIdx >= seq.length) { endN(); return; }
-            nIndex.textContent = `Seq: ${seqIdx + 1} / ${seq.length} • Targets this run: ${totalTargets}`;
-            nLetter.textContent = seq[seqIdx];
-            nLetter.classList.add('flash'); setTimeout(() => nLetter.classList.remove('flash'), 180);
-            allow = true;
-            nTime.textContent = String(seq.length - seqIdx - 1); // seconds left (1 item/sec)
-            seqIdx++;
+        function gngShow() {
+        if (gngTrial>=gngTotal){ gngEnd(); return; }
+        const noGo = gngNoGoSet.has(gngTrial);
+        gWasNoGo = noGo;
+        gngStim.textContent = noGo ? 'NO-GO' : 'GO';
+        gngStim.style.color = noGo ? '#ef4444' : '#22c55e';
+        gngStim.classList.add('flash'); setTimeout(()=>gngStim.classList.remove('flash'),160);
+        gngAllow=true;
+        gngCount.textContent = `${gngTrial+1}/${gngTotal}`;
+        gngTrial++;
         }
-
-        function pressMatch() {
-            if (!nTimer || !allow) return;
-            const isTarget = targetPos.has(seqIdx - 1); // current item index is seqIdx-1
-            if (isTarget) { nScore++; nHit++; } else { nScore = Math.max(0, nScore - 1); nFalseC++; }
-            nScoreEl.textContent = String(nScore);
-            nHits.textContent = String(nHit);
-            nFalse.textContent = String(nFalseC);
-            allow = false;
+        function gngPress(){
+        if(!gngTimer || !gngAllow) return;
+        if(!gWasNoGo){ gngHit++; } else { gngFalse++; }
+        gngHits.textContent = String(gngHit); gngFA.textContent = String(gngFalse);
+        const acc = Math.round(100*(gngHit/(gngTrial - gngNoGoSet.has(gngTrial-1) ? (gngTrial - 1 - gngNoGoSet.size) : (gngTrial - gngNoGoSet.size) || 1)));
+        gngAcc.textContent = `${Math.max(0, Math.min(100, acc))}%`;
+        gngAllow=false;
         }
-
-        function endN() {
-            clearInterval(nTimer); nTimer = null; allow = false;
-            const misses = Math.max(0, totalTargets - nHit);
-            if (nHit > (STATE.best.nback || 0)) { STATE.best.nback = nHit; saveState(STATE); nBest.textContent = STATE.best.nback; }
-            nFinish.classList.remove('hidden');
-            nFinish.innerHTML = `Finished! Hits <b>${nHit}</b> / ${totalTargets} • Missed <b>${misses}</b> • False <b>${nFalseC}</b> • Best hits <b>${STATE.best.nback}</b>
-    <div style="margin-top:6px"><button onclick="(${startN.toString()})()">Play again</button></div>`;
-            nLetter.textContent = 'Done';
+        function gngEnd(){
+        clearInterval(gngTimer); gngTimer=null; gngAllow=false;
+        const goTrials = gngTotal - gngNoGoSet.size;
+        const acc = Math.round(100*(gngHit/Math.max(1,goTrials)));
+        if(acc>(STATE.best.gng||0)){ STATE.best.gng=acc; saveState(STATE); gngBest.textContent=`${acc}%`; }
+        gngFinish.classList.remove('hidden');
+        gngFinish.innerHTML = `Finished! Go accuracy <b>${acc}%</b> • Hits ${gngHit}/${goTrials} • False alarms ${gngFalse}
+            <div style="margin-top:6px"><button onclick="(${gngStartRun.toString()})()">Play again</button></div>`;
+        gngStim.textContent='Done';
         }
-
-        function startN() {
-            nFinish.classList.add('hidden');
-            // Comparable: fixed length & target count. Double speed: 1 item/sec.
-            seq = makeNBackSequence(30, 8); // 30 items, exactly 8 targets
-            seqIdx = 0; nScore = 0; nHit = 0; nFalseC = 0; allow = false;
-            nScoreEl.textContent = '0'; nHits.textContent = '0'; nFalse.textContent = '0';
-            if (nTimer) clearInterval(nTimer);
-            stepN();                                // first immediately
-            nTimer = setInterval(stepN, 1000);      // then every 1s
+        function gngStartRun(){
+        gngFinish.classList.add('hidden'); gngTrial=0; gngHit=0; gngFalse=0; gngHits.textContent='0'; gngFA.textContent='0'; gngAcc.textContent='0%';
+        gngPlanTrials(Number(gngProb.value));
+        if(gngTimer) clearInterval(gngTimer);
+        gngShow(); gngTimer=setInterval(gngShow, 800); // 0.8 s per trial
         }
+        gngStart.onclick=gngStartRun;
+        gngGoBtn.onclick=gngPress;
+        window.addEventListener('keydown', e=>{ if(document.getElementById('gng').getAttribute('aria-hidden')==='false' && e.key.toLowerCase()==='g'){ gngPress(); }});
 
-        document.getElementById('nStart').onclick = startN;
-        document.getElementById('nMatch').onclick = pressMatch;
-        window.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); pressMatch(); } });
+
+
+
+
+
+
+
+        // ---------- EMOTIONAL STROOP ----------
+        const EMO_WORDS = ['ANGER','JOY','FEAR','HAPPY','SAD','LOVE','PANIC','PEACE','HATE','SMILE'];
+        const esWord = document.getElementById('esWord');
+        const esBtns = document.getElementById('esBtns');
+        const esScoreEl = document.getElementById('esScore');
+        const esAccEl = document.getElementById('esAcc');
+        const esTime = document.getElementById('esTime');
+        const esBest = document.getElementById('esBest'); esBest.textContent = STATE.best.estroop||0;
+        const esFinish = document.getElementById('esFinish');
+        let esTimer=null, esLeft=30, esScore=0, esTries=0, esAnswer='';
+
+        function esSetupButtons(){ esBtns.innerHTML=''; COLORS.forEach(c=>{ const b=document.createElement('button'); b.textContent=c.name; b.style.borderColor=c.css; b.onclick=()=>esPick(c.name); esBtns.appendChild(b); }); }
+        function esNew(){
+        const word = EMO_WORDS[(Math.random()*EMO_WORDS.length)|0];
+        const ink = COLORS[(Math.random()*COLORS.length)|0];
+        esAnswer = ink.name; esWord.textContent=word; esWord.style.color=ink.css;
+        esWord.classList.add('flash'); setTimeout(()=>esWord.classList.remove('flash'),160);
+        }
+        function esPick(name){
+        if(!esTimer) return; esTries++; if(name===esAnswer) esScore++;
+        esScoreEl.textContent=String(esScore); esAccEl.textContent=`${Math.round(100*(esScore/(esTries||1)))}%`; esNew();
+        }
+        function esEnd(){
+        clearInterval(esTimer); esTimer=null;
+        if(esScore>(STATE.best.estroop||0)){ STATE.best.estroop=esScore; saveState(STATE); esBest.textContent=STATE.best.estroop; }
+        esFinish.classList.remove('hidden');
+        esFinish.innerHTML = `Finished! Score <b>${esScore}</b> • Acc <b>${Math.round(100*(esScore/(esTries||1)))}%</b> • Best <b>${STATE.best.estroop}</b>
+            <div style="margin-top:6px"><button onclick="(${esStart.toString()})()">Play again</button></div>`;
+        esWord.textContent='Done';
+        }
+        function esStart(){
+        esFinish.classList.add('hidden'); esLeft=30; esScore=0; esTries=0; esScoreEl.textContent='0'; esAccEl.textContent='0%'; esTime.textContent='30';
+        esNew(); if(esTimer) clearInterval(esTimer);
+        esTimer=setInterval(()=>{ esLeft--; esTime.textContent=String(esLeft); if(esLeft<=0) esEnd(); },1000);
+        }
+        esSetupButtons(); document.getElementById('esStart').onclick=esStart;
+
+
+
+
+
+
+        // ---------- MULTI N-BACK ----------
+        const nbNEl = document.getElementById('nbN');
+        const nbSet = document.getElementById('nbSet');
+        const nbBtns = document.getElementById('nbBtns');
+        const nbStart = document.getElementById('nbStart');
+        const nbTime = document.getElementById('nbTime');
+        const nbHits = document.getElementById('nbHits');
+        const nbFalse = document.getElementById('nbFalse');
+        const nbTargets = document.getElementById('nbTargets');
+        const nbBest = document.getElementById('nbBest');
+        const nbFinish = document.getElementById('nbFinish');
+        const nbSym = document.getElementById('nbSym');
+        nbBest.textContent = STATE.best.nbmulti||0;
+        const LETTERS_SET = 'ABCDEFGHJKLMNPQRSTUVWXZ'.split(''); // no I/O/Y
+        const DIGITS_SET = '0123456789'.split('');
+        const POSITIONS = [...Array(9).keys()]; // 0..8 on 3x3
+
+        let nbTimer=null, nbSeq=[], nbIdx=0, nbLen=36, nbHit=0, nbFalseC=0, nbTgtCount=0, nbAllow=false, nbActiveTargets=null;
+        function nbFeatureList(){
+        return [
+            document.getElementById('nbFeatSymbol').checked ? 'symbol' : null,
+            document.getElementById('nbFeatColor').checked ? 'color' : null,
+            document.getElementById('nbFeatSize').checked ? 'size' : null,
+            document.getElementById('nbFeatPos').checked ? 'pos' : null,
+        ].filter(Boolean);
+        }
+        function nbRandFrom(a){ return a[(Math.random()*a.length)|0] }
+        function nbRandSymbol(){ return (nbSet.value==='Digits'? DIGITS_SET: LETTERS_SET)[(Math.random()* (nbSet.value==='Digits'? DIGITS_SET.length: LETTERS_SET.length))|0] }
+        function nbRandColor(){ return nbRandFrom(COLORS).name }
+        function nbRandSize(){ return nbRandFrom([32,42,56]) } // px font size
+        function nbGridPosCell(idx){ // 0..8 to CSS top/left in grid
+        const r = Math.floor(idx/3), c = idx%3;
+        return {top: `${r*40}px`, left: `${c*40}px`};
+        }
+        function nbMakeItem(prevN){
+        const feats = nbFeatureList();
+        const symbol = nbRandSymbol(), color=nbRandColor(), size=nbRandSize(), pos=nbRandFrom(POSITIONS);
+        const base = {symbol,color,size,pos};
+        if(nbSeq.length < prevN) return {...base, targets: []};
+        // choose at most ONE target feature per trial to disambiguate response
+        if(feats.length===0) return {...base, targets: []};
+        const makeTarget = Math.random() < 0.35; // ~35% of trials are targets
+        if(!makeTarget) return {...base, targets: []};
+        const pick = nbRandFrom(feats);
+        const past = nbSeq[nbSeq.length - prevN];
+        const forced = {...base};
+        forced[pick] = past[pick];
+        return {...forced, targets: [pick]};
+        }
+        function nbPlan(){
+        nbSeq.length=0; nbIdx=0; nbHit=0; nbFalseC=0; nbTgtCount=0; nbAllow=false; nbActiveTargets=null;
+        const N = Number(nbNEl.value);
+        for(let i=0;i<nbLen;i++){
+            const it = nbMakeItem(N);
+            nbSeq.push(it);
+            if(it.targets.length) nbTgtCount++;
+        }
+        nbTargets.textContent = String(nbTgtCount);
+        }
+        function nbRender(item){
+        nbSym.textContent = item.symbol;
+        const c = COLORS.find(x=>x.name===item.color) || COLORS[0];
+        nbSym.style.color = c.css;
+        nbSym.style.fontSize = `${item.size}px`;
+        const posCSS = nbGridPosCell(item.pos);
+        nbSym.style.top = posCSS.top; nbSym.style.left = posCSS.left;
+        nbSym.classList.add('flash'); setTimeout(()=>nbSym.classList.remove('flash'),160);
+        }
+        function nbShow(){
+        if(nbIdx>=nbSeq.length){ nbEnd(); return; }
+        const it = nbSeq[nbIdx]; nbActiveTargets = it.targets; nbRender(it);
+        nbAllow = true; nbIdx++; nbTime.textContent = String(nbSeq.length - nbIdx);
+        }
+        function nbClick(feature){
+        if(!nbTimer || !nbAllow) return;
+        const isTarget = (nbActiveTargets||[]).includes(feature);
+        if(isTarget){ nbHit++; } else { nbFalseC++; }
+        nbHits.textContent = String(nbHit); nbFalse.textContent = String(nbFalseC);
+        nbAllow = false;
+        }
+        function nbButtonsRefresh(){
+        const feats = nbFeatureList(); nbBtns.innerHTML='';
+        feats.forEach(f=>{
+            const label = (f==='symbol'?'Symbol': f==='color'?'Color': f==='size'?'Size':'Position');
+            const btn=document.createElement('button');
+            btn.textContent = label + ' Match';
+            btn.onclick=()=>nbClick(f);
+            nbBtns.appendChild(btn);
+        });
+        }
+        ['nbFeatSymbol','nbFeatColor','nbFeatSize','nbFeatPos','nbSet'].forEach(id=>{
+        document.getElementById(id).addEventListener('change', nbButtonsRefresh);
+        });
+        function nbEnd(){
+        clearInterval(nbTimer); nbTimer=null; nbAllow=false;
+        if(nbHit>(STATE.best.nbmulti||0)){ STATE.best.nbmulti=nbHit; saveState(STATE); nbBest.textContent=STATE.best.nbmulti; }
+        nbFinish.classList.remove('hidden');
+        nbFinish.innerHTML = `Finished! Hits <b>${nbHit}</b> / Targets <b>${nbTgtCount}</b> • False <b>${nbFalseC}</b>
+            <div style="margin-top:6px"><button onclick="(${nbStartRun.toString()})()">Play again</button></div>`;
+        nbSym.textContent='Done';
+        }
+        function nbStartRun(){
+        nbFinish.classList.add('hidden'); nbButtonsRefresh();
+        nbPlan(); nbHits.textContent='0'; nbFalse.textContent='0'; nbTime.textContent=String(nbLen);
+        if(nbTimer) clearInterval(nbTimer);
+        nbShow(); nbTimer=setInterval(nbShow, 1000);
+        }
+        nbStart.onclick = nbStartRun;
+        nbButtonsRefresh();
+
+
+
+
+
+
 
 
         // ---------- NUMBER MEMORY
@@ -647,9 +917,24 @@
         function randDigits(n) { let s = ''; for (let i = 0; i < n; i++) s += String(Math.floor(Math.random() * 10)); return s }
         function nmStart() { nmFinish.classList.add('hidden'); nmLevel = 1; nmLevelEl.textContent = '1'; nmNext() }
         function nmNext() { nmCurrent = randDigits(nmLevel); nmShow.textContent = nmCurrent; nmShow.classList.add('flash'); setTimeout(() => { nmShow.textContent = '…'; }, 900); nmInput.value = ''; nmInput.focus() }
+        function reverseStr(s){ return s.split('').reverse().join('') }
         function nmCheck() {
-            const ok = nmInput.value.trim() === nmCurrent; if (ok) { nmLevel++; nmLevelEl.textContent = String(nmLevel); nmNext() } else { const bestPrev = STATE.best.nmem || 0; const achieved = Math.max(1, nmLevel - 1); if (achieved > bestPrev) { STATE.best.nmem = achieved; saveState(STATE); nmBestEl.textContent = STATE.best.nmem } nmFinish.classList.remove('hidden'); nmFinish.innerHTML = `Finished! Level reached <b>${achieved}</b> • Best <b>${STATE.best.nmem}</b> <div style="margin-top:6px"><button onclick="(${nmStart.toString()})()">Play again</button></div>`; nmShow.textContent = 'Done' }
+            const backward = document.getElementById('nmBackward').checked;
+            const expected = backward ? reverseStr(nmCurrent) : nmCurrent;
+            const ok = nmInput.value.trim() === expected;
+            if (ok) {
+                nmLevel++; nmLevelEl.textContent = String(nmLevel); nmNext();
+            } else {
+                const bestPrev = STATE.best.nmem || 0;
+                const achieved = Math.max(1, nmLevel - 1);
+                if (achieved > bestPrev) { STATE.best.nmem = achieved; saveState(STATE); nmBestEl.textContent = STATE.best.nmem }
+                nmFinish.classList.remove('hidden');
+                nmFinish.innerHTML = `Finished! Level reached <b>${achieved}</b> • Best <b>${STATE.best.nmem}</b>
+                <div style="margin-top:6px"><button onclick="(${nmStart.toString()})()">Play again</button></div>`;
+                nmShow.textContent = 'Done';
+            }
         }
+
 
         document.getElementById('nmStart').onclick = nmStart;
         document.getElementById('nmCheck').onclick = nmCheck;
@@ -658,33 +943,7 @@
 
         // ---------- READING COMPREHENSION
         if (!STATE.best.rc) STATE.best.rc = {};
-
-        const RC_TOPICS = [
-            {
-                topic: 'Coffee trade',
-                text: "Brazil exported roasted coffee to Italy after a drought eased, while Italy reduced shipments back to Brazil, focusing instead on espresso machine sales to France.",
-                q: "Based on the passage, which direction was the coffee moving?",
-                choices: ["Italy → Brazil", "Brazil → Italy", "France → Brazil"], answer: 1
-            },
-            {
-                topic: 'Space probes',
-                text: "Pioneer 10 launched before Voyager 2, but only Voyager carried the Golden Record. Both probes flew past giant planets; Voyager took the famous portrait of the Solar System.",
-                q: "Which probe launched first?",
-                choices: ["Voyager 2", "Pioneer 10", "Both together"], answer: 1
-            },
-            {
-                topic: 'Rivers & cities',
-                text: "The Arlen River flows north into the Calder. City X lies upstream of City Y on the Arlen, yet south of the Calder delta.",
-                q: "Relative to City Y, where is City X on the Arlen?",
-                choices: ["Downstream", "Upstream", "Same location"], answer: 1
-            },
-            {
-                topic: 'History note',
-                text: "In 1867, Country A ceded its northern territory to Country B. Decades later, A imported timber from B while exporting coal to C.",
-                q: "Who ceded territory to whom?",
-                choices: ["B → A", "A → B", "C → A"], answer: 1
-            }
-        ];
+        const RC_TOPICS = window.RC_TOPICS || [];
 
         const rcTopicSel = document.getElementById('rcTopic');
         const rcWord = document.getElementById('rcWord');
@@ -1110,6 +1369,142 @@
         /* ------------------- /TANGO ------------------- */
 
 
+
+
+
+
+
+
+
+
+
+
+
+        // ---------- FUTOSHIKI 4×4 ----------
+        const futoBoard = document.getElementById('futoBoard');
+        const futoMsg = document.getElementById('futoMsg');
+        const F = 4;
+        const FUTO_PUZZLES = [
+        {
+            // givens: null or 1..4
+            givens: [
+            [null, 3,   null, null],
+            [null, null, null, 1   ],
+            [null, null, 2,    null],
+            [4,    null, null, null]
+            ],
+            // right[r][c] is relation between (r,c) and (r,c+1): 'lt' or 'gt' (or null)
+            right: [
+            ['lt', null, null, null],
+            [null, 'gt', null, null],
+            [null, null, null, null],
+            [null, null, 'lt', null],
+            ],
+            // down[r][c] between (r,c) and (r+1,c)
+            down: [
+            [null,'gt', null, null],
+            [null, null,'lt', null],
+            [null, null, null, null]
+            ]
+        },
+        {
+            givens: [
+            [2,    null, null, null],
+            [null, null, 3,    null],
+            [null, 1,    null, null],
+            [null, null, null, 4   ]
+            ],
+            right: [
+            [null,'lt', null, null],
+            [null, null,'gt', null],
+            [null, null, null, null],
+            [null, null, 'gt', null],
+            ],
+            down: [
+            ['lt', null, null, null],
+            [null, 'gt', null, null],
+            [null, null, 'lt', null]
+            ]
+        }
+        ];
+
+        let futoCells=[], futoData=null;
+        function futoRender(puz){
+        futoBoard.innerHTML=''; futoCells=[]; futoData=puz;
+        for(let r=0;r<F;r++){
+            for(let c=0;c<F;c++){
+            const d=document.createElement('div'); d.className='futo-cell'; d.dataset.r=r; d.dataset.c=c;
+            const v=puz.givens[r][c]; if(v!=null){ d.textContent=String(v); d.dataset.lock='1'; } else { d.textContent=''; }
+            // markers
+            if(puz.right[r][c]==='lt') d.classList.add('lt-right'); else if(puz.right[r][c]==='gt') d.classList.add('gt-right');
+            if(r<F-1){
+                if(puz.down[r][c]==='lt') d.classList.add('lt-down'); else if(puz.down[r][c]==='gt') d.classList.add('gt-down');
+            }
+            d.onclick=()=>{ if(d.dataset.lock==='1') return; const cur=Number(d.textContent)||0; d.textContent = String(((cur)%4)+1); };
+            futoBoard.appendChild(d);
+            if(!futoCells[r]) futoCells[r]=[]; futoCells[r][c]=d;
+            }
+        }
+        }
+        function futoRead(){
+        const g=[...Array(F)].map(()=>Array(F).fill(null));
+        for(let r=0;r<F;r++) for(let c=0;c<F;c++){
+            const t=futoCells[r][c].textContent.trim(); g[r][c]= t? Number(t): null;
+        } return g;
+        }
+        function futoSay(msg,ok){ futoMsg.classList.remove('hidden'); futoMsg.innerHTML = `<span class="${ok?'ok':'bad'}">${msg}</span>` }
+        function futoLatinOK(g){
+        for(let i=0;i<F;i++){
+            const row=g[i]; if(row.some(x=>x==null)) return false;
+            const setR=new Set(row); if(setR.size!==F) return false;
+            const col=[g[0][i],g[1][i],g[2][i],g[3][i]]; if(col.some(x=>x==null)) return false;
+            const setC=new Set(col); if(setC.size!==F) return false;
+        }
+        return true;
+        }
+        function futoIneqOK(g,p){
+        for(let r=0;r<F;r++) for(let c=0;c<F;c++){
+            const a=g[r][c]; if(a==null) return false;
+            if(c<F-1){
+            const rel=p.right[r][c];
+            if(rel){ const b=g[r][c+1]; if(b==null) return false; if(rel==='lt' && !(a<b)) return false; if(rel==='gt' && !(a>b)) return false; }
+            }
+            if(r<F-1){
+            const rel2=p.down[r][c];
+            if(rel2){ const b=g[r+1][c]; if(b==null) return false; if(rel2==='lt' && !(a<b)) return false; if(rel2==='gt' && !(a>b)) return false; }
+            }
+        }
+        return true;
+        }
+        function futoCheck(){
+        const g=futoRead();
+        // allow partial: quick sanity warnings
+        // 1) duplicates so far?
+        for(let r=0;r<F;r++){
+            const seen=new Set(); for(let c=0;c<F;c++){ const v=g[r][c]; if(v!=null){ if(seen.has(v)) return futoSay('Row duplicate detected.',false); seen.add(v); } }
+        }
+        for(let c=0;c<F;c++){
+            const seen=new Set(); for(let r=0;r<F;r++){ const v=g[r][c]; if(v!=null){ if(seen.has(v)) return futoSay('Column duplicate detected.',false); seen.add(v); } }
+        }
+        // full check
+        const full = g.every(row=>row.every(v=>v!=null));
+        if(full){
+            if(!futoLatinOK(g)) return futoSay('Must be 1–4 with no repeats per row/col.', false);
+            if(!futoIneqOK(g,futoData)) return futoSay('Inequality violated.', false);
+            STATE.best.futo = Math.max(1, STATE.best.futo||0); saveState(STATE);
+            return futoSay('Solved! ✅', true);
+        }
+        return futoSay('Looks consistent so far.', true);
+        }
+        function futoNew(){
+        futoMsg.classList.add('hidden');
+        const puz = FUTO_PUZZLES[(Math.random()*FUTO_PUZZLES.length)|0];
+        futoRender(puz);
+        }
+        document.getElementById('futoNew').onclick=futoNew;
+        document.getElementById('futoCheck').onclick=futoCheck;
+        futoNew();
+        // ---------- /FUTOSHIKI ----------
     </script>
 </body>
 
